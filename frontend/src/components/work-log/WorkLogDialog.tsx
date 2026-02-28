@@ -1,20 +1,7 @@
-import { useEffect } from 'react';
-import { useForm, type Resolver } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Dialog, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useCreateWorkLog, useUpdateWorkLog } from '@/hooks/use-work-logs';
+import { Dialog, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useCreateWorkLog, useUpdateWorkLog, type WorkLogInput } from '@/hooks/use-work-logs';
 import type { WorkLog } from '@/types';
-
-const schema = z.object({
-  date: z.string().min(1, 'Data é obrigatória'),
-  hours: z.coerce.number().min(0.5, 'Mínimo 0.5h').max(24, 'Máximo 24h'),
-  notes: z.string().optional(),
-});
-
-type FormData = z.infer<typeof schema>;
+import { WorkLogForm, type WorkLogFormData } from './WorkLogForm';
 
 interface WorkLogDialogProps {
   open: boolean;
@@ -28,40 +15,43 @@ export function WorkLogDialog({ open, onClose, editLog, defaultDate }: WorkLogDi
   const updateMutation = useUpdateWorkLog();
   const isEditing = !!editLog;
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<FormData>({
-    resolver: zodResolver(schema) as Resolver<FormData>,
-    defaultValues: {
-      date: editLog?.date?.split('T')[0] || defaultDate || new Date().toISOString().split('T')[0],
-      hours: editLog?.hours || 7,
-      notes: editLog?.notes || '',
-    },
-  });
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
-  useEffect(() => {
-    if (open) {
-      reset({
-        date: editLog?.date?.split('T')[0] || defaultDate || new Date().toISOString().split('T')[0],
-        hours: editLog?.hours || 7,
-        notes: editLog?.notes || '',
-      });
+  const buildPayload = (data: WorkLogFormData): WorkLogInput => {
+    const payload: WorkLogInput = {
+      date: data.date,
+      type: data.type,
+      company: data.company,
+      taskDescription: data.taskDescription,
+    };
+
+    if (data.type === 'NORMAL') {
+      payload.startTime = data.startTime;
+      payload.endTime = data.endTime;
+      if (data.lunchStart) payload.lunchStart = data.lunchStart;
+      if (data.lunchEnd) payload.lunchEnd = data.lunchEnd;
     }
-  }, [open, editLog, defaultDate, reset]);
 
-  const onSubmit = async (data: FormData) => {
+    if (data.type === 'JUSTIFIED_ABSENCE' && data.justification) {
+      payload.justification = data.justification;
+    }
+
+    return payload;
+  };
+
+  const handleSubmit = async (data: WorkLogFormData) => {
+    const payload = buildPayload(data);
+
     if (isEditing && editLog) {
-      await updateMutation.mutateAsync({ id: editLog.id, ...data });
+      await updateMutation.mutateAsync({ id: editLog.id, ...payload });
     } else {
-      await createMutation.mutateAsync(data);
+      await createMutation.mutateAsync(payload);
     }
+
     onClose();
   };
 
-  const isPending = createMutation.isPending || updateMutation.isPending;
+  const errorMessage = (createMutation.error || updateMutation.error)?.message;
 
   return (
     <Dialog open={open} onClose={onClose}>
@@ -69,43 +59,15 @@ export function WorkLogDialog({ open, onClose, editLog, defaultDate }: WorkLogDi
         <DialogTitle>{isEditing ? 'Editar Registo' : 'Novo Registo'}</DialogTitle>
       </DialogHeader>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label className="mb-1 block text-sm font-medium">Data</label>
-          <Input type="date" {...register('date')} />
-          {errors.date && <p className="mt-1 text-xs text-destructive">{errors.date.message}</p>}
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium">Horas</label>
-          <Input type="number" step="0.5" min="0.5" max="24" {...register('hours')} />
-          {errors.hours && <p className="mt-1 text-xs text-destructive">{errors.hours.message}</p>}
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium">Notas (opcional)</label>
-          <textarea
-            {...register('notes')}
-            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            placeholder="O que fez hoje..."
-          />
-        </div>
-
-        {(createMutation.error || updateMutation.error) && (
-          <p className="text-sm text-destructive">
-            {(createMutation.error || updateMutation.error)?.message}
-          </p>
-        )}
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={isPending}>
-            {isPending ? 'A guardar...' : isEditing ? 'Atualizar' : 'Criar'}
-          </Button>
-        </DialogFooter>
-      </form>
+      <WorkLogForm
+        initialValues={editLog || undefined}
+        defaultDate={defaultDate}
+        isSubmitting={isPending}
+        errorMessage={errorMessage}
+        submitLabel={isEditing ? 'Atualizar' : 'Criar'}
+        onCancel={onClose}
+        onSubmit={handleSubmit}
+      />
     </Dialog>
   );
 }

@@ -1,6 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import type { WorkLog, WorkLogListResponse } from '@/types';
+import type { WorkLog, WorkLogListResponse, WorkLogType } from '@/types';
+
+export interface WorkLogInput {
+  date: string;
+  type: WorkLogType;
+  startTime?: string;
+  endTime?: string;
+  lunchStart?: string;
+  lunchEnd?: string;
+  company: string;
+  taskDescription: string;
+  justification?: string;
+}
 
 export function useWorkLogs(params?: { from?: string; to?: string; page?: number; limit?: number }) {
   const query = new URLSearchParams();
@@ -19,8 +31,7 @@ export function useWorkLogs(params?: { from?: string; to?: string; page?: number
 export function useCreateWorkLog() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { date: string; hours: number; notes?: string }) =>
-      api.post<WorkLog>('/work-logs', data),
+    mutationFn: (data: WorkLogInput) => api.post<WorkLog>('/work-logs', data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['work-logs'] });
       qc.invalidateQueries({ queryKey: ['dashboard'] });
@@ -32,7 +43,7 @@ export function useCreateWorkLog() {
 export function useUpdateWorkLog() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: string; date?: string; hours?: number; notes?: string }) =>
+    mutationFn: ({ id, ...data }: { id: string } & Partial<WorkLogInput>) =>
       api.put<WorkLog>(`/work-logs/${id}`, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['work-logs'] });

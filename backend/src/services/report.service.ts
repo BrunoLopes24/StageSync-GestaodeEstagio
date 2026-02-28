@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { format, eachDayOfInterval, getISOWeek } from 'date-fns';
+import { format, getISOWeek } from 'date-fns';
 import { getWeekRange, getMonthRange } from '../utils/date-helpers';
 
 const prisma = new PrismaClient();
@@ -11,7 +11,7 @@ export interface WeeklySummary {
   totalHours: number;
   daysWorked: number;
   avgHoursPerDay: number;
-  dailyBreakdown: { date: string; hours: number; notes: string | null }[];
+  dailyBreakdown: { date: string; hours: number; taskDescription: string | null }[];
 }
 
 export interface MonthlySummary {
@@ -29,11 +29,12 @@ export async function getWeeklySummary(dateStr: string): Promise<WeeklySummary> 
   const logs = await prisma.workLog.findMany({
     where: {
       date: { gte: start, lte: end },
+      type: 'NORMAL',
     },
     orderBy: { date: 'asc' },
   });
 
-  const totalHours = logs.reduce((sum, log) => sum + log.hours, 0);
+  const totalHours = logs.reduce((sum, log) => sum + log.calculatedHours, 0);
   const daysWorked = logs.length;
 
   return {
@@ -45,8 +46,8 @@ export async function getWeeklySummary(dateStr: string): Promise<WeeklySummary> 
     avgHoursPerDay: daysWorked > 0 ? Math.round((totalHours / daysWorked) * 100) / 100 : 0,
     dailyBreakdown: logs.map((log) => ({
       date: format(log.date, 'yyyy-MM-dd'),
-      hours: log.hours,
-      notes: log.notes,
+      hours: log.calculatedHours,
+      taskDescription: log.taskDescription,
     })),
   };
 }
@@ -60,18 +61,19 @@ export async function getMonthlySummary(monthStr: string): Promise<MonthlySummar
   const logs = await prisma.workLog.findMany({
     where: {
       date: { gte: start, lte: end },
+      type: 'NORMAL',
     },
     orderBy: { date: 'asc' },
   });
 
-  const totalHours = logs.reduce((sum, log) => sum + log.hours, 0);
+  const totalHours = logs.reduce((sum, log) => sum + log.calculatedHours, 0);
   const daysWorked = logs.length;
 
   const weekMap = new Map<number, { hours: number; days: number }>();
   for (const log of logs) {
     const week = getISOWeek(log.date);
     const existing = weekMap.get(week) || { hours: 0, days: 0 };
-    existing.hours += log.hours;
+    existing.hours += log.calculatedHours;
     existing.days += 1;
     weekMap.set(week, existing);
   }

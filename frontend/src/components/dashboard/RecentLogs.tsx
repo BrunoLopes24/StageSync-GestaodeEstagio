@@ -30,11 +30,11 @@ export function RecentLogs() {
               >
                 <div>
                   <p className="text-sm font-medium">{formatDate(log.date)}</p>
-                  {log.notes && (
-                    <p className="text-xs text-muted-foreground">{log.notes}</p>
+                  {log.taskDescription && (
+                    <p className="text-xs text-muted-foreground">{log.taskDescription}</p>
                   )}
                 </div>
-                <span className="font-semibold text-primary">{formatHours(log.hours)}</span>
+                <span className="font-semibold text-primary">{formatHours(log.calculatedHours)}</span>
               </div>
             ))}
           </div>

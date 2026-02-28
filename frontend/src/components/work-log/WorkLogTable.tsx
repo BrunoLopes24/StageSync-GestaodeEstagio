@@ -44,8 +44,10 @@ export function WorkLogTable({ page, onPageChange }: WorkLogTableProps) {
           <thead>
             <tr className="border-b bg-muted/50">
               <th className="px-4 py-3 text-left text-sm font-medium">Data</th>
+              <th className="px-4 py-3 text-left text-sm font-medium">Tipo</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Horas</th>
-              <th className="hidden px-4 py-3 text-left text-sm font-medium md:table-cell">Notas</th>
+              <th className="hidden px-4 py-3 text-left text-sm font-medium md:table-cell">Empresa</th>
+              <th className="hidden px-4 py-3 text-left text-sm font-medium lg:table-cell">Descrição</th>
               <th className="px-4 py-3 text-right text-sm font-medium">Ações</th>
             </tr>
           </thead>
@@ -53,11 +55,15 @@ export function WorkLogTable({ page, onPageChange }: WorkLogTableProps) {
             {data.data.map((log) => (
               <tr key={log.id} className="border-b last:border-0">
                 <td className="px-4 py-3 text-sm">{formatDate(log.date)}</td>
+                <td className="px-4 py-3 text-sm">{formatRecordType(log.type)}</td>
                 <td className="px-4 py-3 text-sm font-medium text-primary">
-                  {formatHours(log.hours)}
+                  {formatHours(log.calculatedHours)}
                 </td>
                 <td className="hidden px-4 py-3 text-sm text-muted-foreground md:table-cell">
-                  {log.notes || '—'}
+                  {log.company}
+                </td>
+                <td className="hidden px-4 py-3 text-sm text-muted-foreground lg:table-cell">
+                  {log.taskDescription}
                 </td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex justify-end gap-1">
@@ -133,4 +139,10 @@ export function WorkLogTable({ page, onPageChange }: WorkLogTableProps) {
       </Dialog>
     </>
   );
+}
+
+function formatRecordType(type: WorkLog['type']): string {
+  if (type === 'HOLIDAY') return 'Holiday';
+  if (type === 'JUSTIFIED_ABSENCE') return 'Justified Absence';
+  return 'Normal Work Day';
 }

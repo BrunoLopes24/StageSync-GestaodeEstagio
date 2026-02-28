@@ -1,8 +1,17 @@
+export type WorkLogType = 'NORMAL' | 'HOLIDAY' | 'JUSTIFIED_ABSENCE';
+
 export interface WorkLog {
   id: string;
   date: string;
-  hours: number;
-  notes: string | null;
+  type: WorkLogType;
+  startTime: string | null;
+  endTime: string | null;
+  lunchStart: string | null;
+  lunchEnd: string | null;
+  calculatedHours: number;
+  company: string;
+  taskDescription: string;
+  justification: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -53,7 +62,7 @@ export interface WeeklySummary {
   totalHours: number;
   daysWorked: number;
   avgHoursPerDay: number;
-  dailyBreakdown: { date: string; hours: number; notes: string | null }[];
+  dailyBreakdown: { date: string; hours: number; taskDescription: string | null }[];
 }
 
 export interface MonthlySummary {

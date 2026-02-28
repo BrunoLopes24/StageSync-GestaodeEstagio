@@ -7,13 +7,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum WorkLogType {
+  NORMAL
+  HOLIDAY
+  JUSTIFIED_ABSENCE
+}
+
 model WorkLog {
-  id        String   @id @default(uuid())
-  date      DateTime @db.Date
-  hours     Float
-  notes     String?  @db.Text
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id              String      @id @default(uuid())
+  date            DateTime    @db.Date
+  type            WorkLogType @default(NORMAL)
+  startTime       String?     @map("start_time")
+  endTime         String?     @map("end_time")
+  lunchStart      String?     @map("lunch_start")
+  lunchEnd        String?     @map("lunch_end")
+  calculatedHours Float       @default(0) @map("calculated_hours")
+  company         String      @default("")
+  taskDescription String      @default("") @db.Text @map("task_description")
+  justification   String?     @db.Text
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
 
   @@unique([date])
   @@map("work_logs")

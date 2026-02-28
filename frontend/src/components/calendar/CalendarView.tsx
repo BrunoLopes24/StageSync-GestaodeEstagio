@@ -38,7 +38,7 @@ export function CalendarView() {
   const logsByDate = useMemo(() => {
     const map = new Map<string, number>();
     logsData?.data.forEach((log) => {
-      map.set(log.date.split('T')[0], log.hours);
+      map.set(log.date.split('T')[0], log.calculatedHours);
     });
     return map;
   }, [logsData]);

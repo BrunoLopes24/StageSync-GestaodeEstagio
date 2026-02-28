@@ -43,7 +43,17 @@ async function main() {
 
   // Create sample work logs (last 4 weeks of data)
   const today = new Date();
-  const sampleLogs: { date: Date; hours: number; notes: string | null }[] = [];
+  const sampleLogs: {
+    date: Date;
+    type: 'NORMAL';
+    startTime: string;
+    endTime: string;
+    lunchStart: string;
+    lunchEnd: string;
+    calculatedHours: number;
+    company: string;
+    taskDescription: string;
+  }[] = [];
   const current = new Date(today);
   current.setDate(current.getDate() - 28);
 
@@ -55,20 +65,43 @@ async function main() {
     // Skip weekends
     if (dayOfWeek === 0 || dayOfWeek === 6) continue;
 
-    // Random hours between 6 and 8
-    const hours = Math.round((6 + Math.random() * 2) * 10) / 10;
+    const startTime = '09:00';
+    const endTime = '17:30';
+    const lunchStart = '13:00';
+    const lunchEnd = '14:00';
+    const calculatedHours = 7.5;
+
     sampleLogs.push({
       date: day,
-      hours,
-      notes: i % 5 === 0 ? 'Tarefas de desenvolvimento' : null,
+      type: 'NORMAL',
+      startTime,
+      endTime,
+      lunchStart,
+      lunchEnd,
+      calculatedHours,
+      company: 'Empresa Exemplo',
+      taskDescription: i % 5 === 0 ? 'Tarefas de desenvolvimento' : 'Atividades de estágio',
     });
   }
 
   for (const log of sampleLogs) {
     await prisma.workLog.upsert({
       where: { date: log.date },
-      update: { hours: log.hours, notes: log.notes },
-      create: log,
+      update: {
+        type: log.type,
+        startTime: log.startTime,
+        endTime: log.endTime,
+        lunchStart: log.lunchStart,
+        lunchEnd: log.lunchEnd,
+        calculatedHours: log.calculatedHours,
+        company: log.company,
+        taskDescription: log.taskDescription,
+        justification: null,
+      },
+      create: {
+        ...log,
+        justification: null,
+      },
     });
   }
   console.log(`Created ${sampleLogs.length} sample work logs`);
