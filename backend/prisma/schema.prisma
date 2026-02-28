@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model WorkLog {
+  id        String   @id @default(uuid())
+  date      DateTime @db.Date
+  hours     Float
+  notes     String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([date])
+  @@map("work_logs")
+}
+
+model Holiday {
+  id        String   @id @default(uuid())
+  date      DateTime @db.Date
+  name      String
+  movable   Boolean  @default(false)
+  year      Int
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([date])
+  @@index([year])
+  @@map("holidays")
+}
+
+model Settings {
+  id                 String   @id @default("default")
+  totalRequiredHours Float    @default(640) @map("total_required_hours")
+  dailyWorkHours     Float    @default(7) @map("daily_work_hours")
+  workingDays        Json     @default("[1,2,3,4,5]") @map("working_days")
+  startDate          DateTime @db.Date @map("start_date")
+  internshipTitle    String?  @map("internship_title")
+  organizationName   String?  @map("organization_name")
+  supervisorName     String?  @map("supervisor_name")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
