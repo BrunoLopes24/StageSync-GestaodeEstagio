@@ -142,7 +142,7 @@ export function WorkLogTable({ page, onPageChange }: WorkLogTableProps) {
 }
 
 function formatRecordType(type: WorkLog['type']): string {
-  if (type === 'HOLIDAY') return 'Holiday';
-  if (type === 'JUSTIFIED_ABSENCE') return 'Justified Absence';
-  return 'Normal Work Day';
+  if (type === 'HOLIDAY') return 'Feriado';
+  if (type === 'JUSTIFIED_ABSENCE') return 'Ausência Justificada';
+  return 'Dia Normal de Trabalho';
 }

@@ -1,4 +1,6 @@
 import { PrismaClient, WorkLogType } from '@prisma/client';
+import { getSettings } from './settings.service';
+import { AppError } from '../middleware/error-handler';
 
 const prisma = new PrismaClient();
 
@@ -63,18 +65,25 @@ export interface CreateWorkLogData {
   endTime?: string;
   lunchStart?: string;
   lunchEnd?: string;
-  company: string;
-  taskDescription: string;
+  company?: string;
+  taskDescription?: string;
   justification?: string;
 }
 
 export async function createWorkLog(data: CreateWorkLogData) {
+  const settings = await getSettings();
+  const company = settings.organizationName?.trim();
+  if (!company) {
+    throw new AppError(400, 'Defina a organização em Definições para criar registos');
+  }
+
   const type = data.type ?? 'NORMAL';
   const startTime = type === 'NORMAL' ? data.startTime : null;
   const endTime = type === 'NORMAL' ? data.endTime : null;
   const lunchStart = type === 'NORMAL' ? data.lunchStart : null;
   const lunchEnd = type === 'NORMAL' ? data.lunchEnd : null;
   const justification = type === 'JUSTIFIED_ABSENCE' ? data.justification : null;
+  const taskDescription = type === 'NORMAL' ? (data.taskDescription ?? '').trim() : (data.taskDescription ?? '').trim();
   const calculatedHours = computeHours(type, startTime, endTime, lunchStart, lunchEnd);
   return prisma.workLog.create({
     data: {
@@ -85,14 +94,20 @@ export async function createWorkLog(data: CreateWorkLogData) {
       lunchStart,
       lunchEnd,
       calculatedHours,
-      company: data.company,
-      taskDescription: data.taskDescription,
+      company,
+      taskDescription,
       justification,
     },
   });
 }
 
 export async function updateWorkLog(id: string, data: Partial<CreateWorkLogData>) {
+  const settings = await getSettings();
+  const company = settings.organizationName?.trim();
+  if (!company) {
+    throw new AppError(400, 'Defina a organização em Definições para atualizar registos');
+  }
+
   const existing = await prisma.workLog.findUnique({ where: { id } });
   const type = data.type ?? existing?.type ?? 'NORMAL';
   const startTime = type === 'NORMAL'
@@ -110,6 +125,9 @@ export async function updateWorkLog(id: string, data: Partial<CreateWorkLogData>
   const justification = type === 'JUSTIFIED_ABSENCE'
     ? (data.justification !== undefined ? data.justification : existing?.justification)
     : null;
+  const taskDescription = data.taskDescription !== undefined
+    ? data.taskDescription
+    : existing?.taskDescription;
   const calculatedHours = computeHours(type, startTime, endTime, lunchStart, lunchEnd);
 
   const updateData: any = { calculatedHours };
@@ -119,8 +137,8 @@ export async function updateWorkLog(id: string, data: Partial<CreateWorkLogData>
   updateData.endTime = endTime;
   updateData.lunchStart = lunchStart;
   updateData.lunchEnd = lunchEnd;
-  if (data.company !== undefined) updateData.company = data.company;
-  if (data.taskDescription !== undefined) updateData.taskDescription = data.taskDescription;
+  updateData.company = company;
+  if (taskDescription !== undefined) updateData.taskDescription = taskDescription;
   updateData.justification = justification;
 
   return prisma.workLog.update({ where: { id }, data: updateData });

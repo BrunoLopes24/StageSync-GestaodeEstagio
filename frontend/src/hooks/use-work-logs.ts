@@ -9,8 +9,8 @@ export interface WorkLogInput {
   endTime?: string;
   lunchStart?: string;
   lunchEnd?: string;
-  company: string;
-  taskDescription: string;
+  company?: string;
+  taskDescription?: string;
   justification?: string;
 }
 

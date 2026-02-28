@@ -1,5 +1,6 @@
 import { Dialog, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useCreateWorkLog, useUpdateWorkLog, type WorkLogInput } from '@/hooks/use-work-logs';
+import { useSettings } from '@/hooks/use-settings';
 import type { WorkLog } from '@/types';
 import { WorkLogForm, type WorkLogFormData } from './WorkLogForm';
 
@@ -13,6 +14,7 @@ interface WorkLogDialogProps {
 export function WorkLogDialog({ open, onClose, editLog, defaultDate }: WorkLogDialogProps) {
   const createMutation = useCreateWorkLog();
   const updateMutation = useUpdateWorkLog();
+  const { data: settings } = useSettings();
   const isEditing = !!editLog;
 
   const isPending = createMutation.isPending || updateMutation.isPending;
@@ -21,9 +23,8 @@ export function WorkLogDialog({ open, onClose, editLog, defaultDate }: WorkLogDi
     const payload: WorkLogInput = {
       date: data.date,
       type: data.type,
-      company: data.company,
-      taskDescription: data.taskDescription,
     };
+    if (data.taskDescription) payload.taskDescription = data.taskDescription;
 
     if (data.type === 'NORMAL') {
       payload.startTime = data.startTime;
@@ -62,6 +63,7 @@ export function WorkLogDialog({ open, onClose, editLog, defaultDate }: WorkLogDi
       <WorkLogForm
         initialValues={editLog || undefined}
         defaultDate={defaultDate}
+        organizationName={settings?.organizationName}
         isSubmitting={isPending}
         errorMessage={errorMessage}
         submitLabel={isEditing ? 'Atualizar' : 'Criar'}

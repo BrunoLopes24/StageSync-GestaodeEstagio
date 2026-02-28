@@ -15,12 +15,15 @@ export const createWorkLogSchema = z
     endTime: z.string().regex(timeRegex, 'Formato HH:MM').optional(),
     lunchStart: z.string().regex(timeRegex, 'Formato HH:MM').optional(),
     lunchEnd: z.string().regex(timeRegex, 'Formato HH:MM').optional(),
-    company: z.string().min(1, 'Empresa é obrigatória'),
-    taskDescription: z.string().min(1, 'Descrição é obrigatória'),
+    company: z.string().min(1, 'Empresa é obrigatória').optional(),
+    taskDescription: z.string().min(1, 'Descrição é obrigatória').optional(),
     justification: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.type === 'NORMAL') {
+      if (!data.taskDescription) {
+        ctx.addIssue({ code: 'custom', path: ['taskDescription'], message: 'Descrição é obrigatória para dia normal' });
+      }
       if (!data.startTime) {
         ctx.addIssue({ code: 'custom', path: ['startTime'], message: 'Hora de entrada obrigatória' });
       }
@@ -77,6 +80,9 @@ const updateWorkLogBaseSchema = z.object({
 
 export const updateWorkLogSchema = updateWorkLogBaseSchema.superRefine((data, ctx) => {
   if (data.type === 'NORMAL') {
+    if (!data.taskDescription) {
+      ctx.addIssue({ code: 'custom', path: ['taskDescription'], message: 'Descrição é obrigatória para dia normal' });
+    }
     if (!data.startTime) {
       ctx.addIssue({ code: 'custom', path: ['startTime'], message: 'Hora de entrada obrigatória' });
     }

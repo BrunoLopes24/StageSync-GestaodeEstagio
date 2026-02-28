@@ -1,25 +1,25 @@
 @import "tailwindcss";
 
 @theme {
-  --color-border: #1e1e40;
-  --color-input: #1a1a38;
-  --color-ring: #6367FF;
-  --color-background: #07071a;
-  --color-foreground: #fafafa;
-  --color-primary: #6367FF;
-  --color-primary-foreground: #fafafa;
-  --color-secondary: #1a1a38;
-  --color-secondary-foreground: #fafafa;
+  --color-border: #25485b;
+  --color-input: #1b3d56;
+  --color-ring: #3282B8;
+  --color-background: #1B262C;
+  --color-foreground: #eef6fb;
+  --color-primary: #3282B8;
+  --color-primary-foreground: #eef6fb;
+  --color-secondary: #0F4C75;
+  --color-secondary-foreground: #eef6fb;
   --color-destructive: #ef4444;
-  --color-destructive-foreground: #fafafa;
-  --color-muted: #1a1a38;
-  --color-muted-foreground: #9b9bc8;
-  --color-accent: #1e1e40;
-  --color-accent-foreground: #fafafa;
-  --color-card: #0d0d22;
-  --color-card-foreground: #fafafa;
-  --color-popover: #0d0d22;
-  --color-popover-foreground: #fafafa;
+  --color-destructive-foreground: #eef6fb;
+  --color-muted: #163949;
+  --color-muted-foreground: #b5cfde;
+  --color-accent: #0F4C75;
+  --color-accent-foreground: #eef6fb;
+  --color-card: #132f3d;
+  --color-card-foreground: #eef6fb;
+  --color-popover: #132f3d;
+  --color-popover-foreground: #eef6fb;
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   --radius-sm: 0.25rem;
@@ -32,11 +32,11 @@ body {
   min-height: 100vh;
   color: var(--color-foreground);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: #07071a;
+  background-color: #1B262C;
   background-image:
-    radial-gradient(ellipse 75% 55% at 15% -5%, rgba(99, 103, 255, 0.18) 0%, transparent 70%),
-    radial-gradient(ellipse 55% 45% at 85% 105%, rgba(201, 190, 255, 0.12) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(132, 148, 255, 0.06) 0%, transparent 100%);
+    radial-gradient(ellipse 75% 55% at 15% -5%, rgba(50, 130, 184, 0.28) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 45% at 85% 105%, rgba(15, 76, 117, 0.26) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(50, 130, 184, 0.12) 0%, transparent 100%);
   background-attachment: fixed;
 }
 

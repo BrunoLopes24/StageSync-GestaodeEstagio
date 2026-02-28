@@ -26,12 +26,14 @@ const schema = z
     endTime: optionalTimeSchema,
     lunchStart: optionalTimeSchema,
     lunchEnd: optionalTimeSchema,
-    company: z.string().trim().min(1, 'Empresa é obrigatória'),
-    taskDescription: z.string().trim().min(1, 'Descrição da tarefa é obrigatória'),
+    taskDescription: optionalTextSchema,
     justification: optionalTextSchema,
   })
   .superRefine((data, ctx) => {
     if (data.type === 'NORMAL') {
+      if (!data.taskDescription) {
+        ctx.addIssue({ code: 'custom', path: ['taskDescription'], message: 'Descrição da tarefa é obrigatória' });
+      }
       if (!data.startTime) {
         ctx.addIssue({ code: 'custom', path: ['startTime'], message: 'Hora de entrada obrigatória' });
       }
@@ -94,6 +96,7 @@ export type WorkLogFormData = z.infer<typeof schema>;
 interface WorkLogFormProps {
   initialValues?: Partial<WorkLog> & { date?: string };
   defaultDate?: string;
+  organizationName?: string | null;
   isSubmitting: boolean;
   errorMessage?: string;
   submitLabel: string;
@@ -128,6 +131,7 @@ function computeCalculatedHours(values: {
 export function WorkLogForm({
   initialValues,
   defaultDate,
+  organizationName,
   isSubmitting,
   errorMessage,
   submitLabel,
@@ -149,8 +153,7 @@ export function WorkLogForm({
       endTime: initialValues?.endTime || undefined,
       lunchStart: initialValues?.lunchStart || undefined,
       lunchEnd: initialValues?.lunchEnd || undefined,
-      company: initialValues?.company || '',
-      taskDescription: initialValues?.taskDescription || '',
+      taskDescription: initialValues?.taskDescription || undefined,
       justification: initialValues?.justification || undefined,
     },
   });
@@ -248,12 +251,18 @@ export function WorkLogForm({
 
       <div>
         <label className="mb-1 block text-sm font-medium">Empresa</label>
-        <Input type="text" {...register('company')} placeholder="Nome da empresa" />
-        {errors.company && <p className="mt-1 text-xs text-destructive">{errors.company.message}</p>}
+        <Input
+          type="text"
+          value={organizationName || 'Defina a organização nas Definições'}
+          readOnly
+          disabled
+        />
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">Descrição da Tarefa</label>
+        <label className="mb-1 block text-sm font-medium">
+          Descrição da Tarefa {type === 'NORMAL' ? '' : '(opcional)'}
+        </label>
         <textarea
           {...register('taskDescription')}
           className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
