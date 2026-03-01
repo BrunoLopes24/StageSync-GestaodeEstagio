@@ -31,13 +31,23 @@ export async function calculateDashboardStats(): Promise<DashboardStats> {
     ? totalHoursLogged / daysWorked
     : settings.dailyWorkHours;
 
-  const workingDays = (settings.workingDays as number[]) || [1, 2, 3, 4, 5];
+  // Defend against invalid persisted settings (e.g. empty working days or zero hours/day).
+  const normalizedWorkingDays = Array.isArray(settings.workingDays)
+    ? Array.from(new Set(
+      (settings.workingDays as number[])
+        .filter((day) => Number.isInteger(day) && day >= 1 && day <= 7),
+    ))
+    : [];
+  const workingDays = normalizedWorkingDays.length > 0 ? normalizedWorkingDays : [1, 2, 3, 4, 5];
+  const safeAvgHoursPerDay = Number.isFinite(avgHoursPerDay) && avgHoursPerDay > 0
+    ? avgHoursPerDay
+    : (settings.dailyWorkHours > 0 ? settings.dailyWorkHours : 7);
 
   let predictedEndDate: string | null = null;
   let remainingWorkDays = 0;
 
   if (remainingHours > 0) {
-    remainingWorkDays = Math.ceil(remainingHours / avgHoursPerDay);
+    remainingWorkDays = Math.ceil(remainingHours / safeAvgHoursPerDay);
 
     const today = new Date();
     const currentYear = today.getFullYear();
@@ -45,15 +55,20 @@ export async function calculateDashboardStats(): Promise<DashboardStats> {
 
     let count = 0;
     let cursor = new Date(today);
+    const maxIterations = Math.max(remainingWorkDays * 14, 366 * 3);
+    let iterations = 0;
 
-    while (count < remainingWorkDays) {
+    while (count < remainingWorkDays && iterations < maxIterations) {
       cursor = addDays(cursor, 1);
       if (isWorkDay(cursor, holidaySet, workingDays)) {
         count++;
       }
+      iterations++;
     }
 
-    predictedEndDate = formatDateISO(cursor);
+    if (count === remainingWorkDays) {
+      predictedEndDate = formatDateISO(cursor);
+    }
   }
 
   return {
@@ -63,7 +78,7 @@ export async function calculateDashboardStats(): Promise<DashboardStats> {
     remainingHours: Math.round(remainingHours * 100) / 100,
     remainingWorkDays,
     predictedEndDate,
-    avgHoursPerDay: Math.round(avgHoursPerDay * 100) / 100,
+    avgHoursPerDay: Math.round(safeAvgHoursPerDay * 100) / 100,
     daysWorked,
     startDate: formatDateISO(settings.startDate),
   };
