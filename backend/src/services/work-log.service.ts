@@ -172,51 +172,80 @@ function csvEscape(value: string | null | undefined): string {
   return raw;
 }
 
-function parseCsvLine(line: string): string[] {
-  const values: string[] = [];
+/**
+ * Parses full CSV content into rows of string arrays.
+ * Handles quoted fields (with commas, newlines, escaped quotes).
+ */
+function parseCsvRows(content: string): string[][] {
+  const rows: string[][] = [];
   let current = '';
   let inQuotes = false;
+  let row: string[] = [];
+  const normalized = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
+  for (let i = 0; i < normalized.length; i++) {
+    const ch = normalized[i];
+
     if (ch === '"') {
-      if (inQuotes && line[i + 1] === '"') {
+      if (inQuotes && normalized[i + 1] === '"') {
+        // Escaped quote
         current += '"';
         i++;
       } else {
         inQuotes = !inQuotes;
       }
     } else if (ch === ',' && !inQuotes) {
-      values.push(current);
+      row.push(current);
       current = '';
+    } else if (ch === '\n' && !inQuotes) {
+      row.push(current);
+      current = '';
+      if (row.some((cell) => cell.trim().length > 0)) {
+        rows.push(row);
+      }
+      row = [];
     } else {
       current += ch;
     }
   }
-  values.push(current);
-  return values;
+
+  // Last field/row
+  row.push(current);
+  if (row.some((cell) => cell.trim().length > 0)) {
+    rows.push(row);
+  }
+
+  return rows;
 }
 
 function parseCsv(content: string): Record<string, string>[] {
-  const lines = content
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n')
-    .split('\n')
-    .filter((line) => line.trim().length > 0);
+  const allRows = parseCsvRows(content);
+  if (!allRows.length) return [];
 
-  if (!lines.length) return [];
-  const headers = parseCsvLine(lines[0]).map((h) => mapHeader(h));
-  const rows: Record<string, string>[] = [];
+  const headers = allRows[0].map((h) => mapHeader(h));
+  const result: Record<string, string>[] = [];
 
-  for (let i = 1; i < lines.length; i++) {
-    const cells = parseCsvLine(lines[i]);
+  for (let i = 1; i < allRows.length; i++) {
+    const cells = allRows[i];
     const row: Record<string, string> = {};
+
+    // If more columns than headers, rejoin excess into last mapped header
+    // (handles unquoted commas in trailing fields like taskDescription)
+    if (cells.length > headers.length) {
+      const taskDescIdx = headers.indexOf('taskDescription');
+      if (taskDescIdx >= 0 && taskDescIdx < cells.length) {
+        const excess = cells.length - headers.length;
+        const merged = cells.slice(taskDescIdx, taskDescIdx + 1 + excess).join(',');
+        cells.splice(taskDescIdx, 1 + excess, merged);
+      }
+    }
+
     headers.forEach((header, idx) => {
       row[header] = cells[idx] ?? '';
     });
-    rows.push(row);
+    result.push(row);
   }
-  return rows;
+  return result;
 }
 
 const HEADER_ALIASES: Record<string, string> = {
