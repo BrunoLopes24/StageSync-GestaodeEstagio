@@ -62,7 +62,7 @@ export function WorkLogTable({ page, onPageChange }: WorkLogTableProps) {
                 <td className="hidden px-4 py-3 text-sm text-muted-foreground md:table-cell">
                   {log.company}
                 </td>
-                <td className="hidden px-4 py-3 text-sm text-muted-foreground lg:table-cell">
+                <td className="hidden whitespace-pre-line px-4 py-3 text-sm text-muted-foreground lg:table-cell">
                   {log.taskDescription}
                 </td>
                 <td className="px-4 py-3 text-right">
