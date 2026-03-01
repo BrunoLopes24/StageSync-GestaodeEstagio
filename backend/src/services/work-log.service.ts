@@ -262,7 +262,19 @@ export async function exportWorkLogsCsv(): Promise<string> {
 }
 
 export async function importWorkLogsCsv(content: string) {
-  const rows = parseCsv(content);
+  // Strip UTF-8 BOM if present
+  const cleaned = content.replace(/^\uFEFF/, '');
+  const rows = parseCsv(cleaned);
+  if (!rows.length) {
+    throw new AppError(400, 'CSV file is empty or has no data rows');
+  }
+
+  const settings = await getSettings();
+  const company = settings.organizationName?.trim();
+  if (!company) {
+    throw new AppError(400, 'Defina a organização em Definições antes de importar');
+  }
+
   let created = 0;
   let updated = 0;
 
@@ -271,28 +283,57 @@ export async function importWorkLogsCsv(content: string) {
     if (!date) {
       throw new AppError(400, 'CSV row missing required "date"');
     }
+
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) {
+      throw new AppError(400, `Invalid date format in CSV: "${date}"`);
+    }
+
     const type = parseWorkLogType((row.type || 'NORMAL').trim());
-    const payload: Partial<CreateWorkLogData> = {
-      date,
-      type,
-      startTime: row.startTime?.trim() || undefined,
-      endTime: row.endTime?.trim() || undefined,
-      lunchStart: row.lunchStart?.trim() || undefined,
-      lunchEnd: row.lunchEnd?.trim() || undefined,
-      taskDescription: row.taskDescription?.trim() || undefined,
-      justification: row.justification?.trim() || undefined,
-    };
+    const startTime = row.startTime?.trim() || null;
+    const endTime = row.endTime?.trim() || null;
+    const lunchStart = row.lunchStart?.trim() || null;
+    const lunchEnd = row.lunchEnd?.trim() || null;
+    const taskDescription = row.taskDescription?.trim() || '';
+    const justification = row.justification?.trim() || null;
+    const calculatedHours = computeHours(type, startTime, endTime, lunchStart, lunchEnd);
 
     const existing = await prisma.workLog.findUnique({
-      where: { date: new Date(date) },
+      where: { date: parsedDate },
       select: { id: true },
     });
 
     if (existing) {
-      await updateWorkLog(existing.id, payload);
+      await prisma.workLog.update({
+        where: { id: existing.id },
+        data: {
+          type,
+          startTime,
+          endTime,
+          lunchStart,
+          lunchEnd,
+          calculatedHours,
+          company,
+          taskDescription,
+          justification,
+        },
+      });
       updated++;
     } else {
-      await createWorkLog(payload as CreateWorkLogData);
+      await prisma.workLog.create({
+        data: {
+          date: parsedDate,
+          type,
+          startTime,
+          endTime,
+          lunchStart,
+          lunchEnd,
+          calculatedHours,
+          company,
+          taskDescription,
+          justification,
+        },
+      });
       created++;
     }
   }

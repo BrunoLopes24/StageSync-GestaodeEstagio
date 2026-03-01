@@ -85,7 +85,9 @@ export async function importCsv(req: Request, res: Response, next: NextFunction)
     if (!content.trim()) throw new AppError(400, 'CSV content is required');
     const result = await workLogService.importWorkLogsCsv(content);
     res.json(result);
-  } catch (err) {
-    next(err);
+  } catch (err: any) {
+    if (err instanceof AppError) return next(err);
+    console.error('CSV import error:', err);
+    next(new AppError(400, err.message || 'Failed to import CSV'));
   }
 }
