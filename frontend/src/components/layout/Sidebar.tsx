@@ -6,6 +6,7 @@ import {
   BarChart3,
   Settings,
 } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 
 const links = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -31,9 +32,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-16 items-center gap-2 border-b px-6">
-          <Clock className="h-6 w-6 text-primary" />
-          <span className="text-lg font-bold">StageSync</span>
+        <div className="flex h-16 items-center border-b px-6">
+          <Logo className="h-7" />
         </div>
 
         <nav className="flex-1 space-y-1 p-4">

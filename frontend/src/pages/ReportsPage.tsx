@@ -53,7 +53,7 @@ export function ReportsPage() {
         <div className="py-8 text-center text-destructive">Não foi possível carregar os relatórios.</div>
       ) : (
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-          <article className="relative flex min-h-[360px] flex-col overflow-hidden rounded-3xl bg-card/85 p-7 shadow-[0_12px_42px_rgba(15,76,117,0.28)]">
+          <article className="relative flex min-h-[360px] flex-col overflow-hidden rounded-3xl bg-card/85 p-7 shadow-[0_12px_42px_rgba(11,18,32,0.50)]">
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-secondary/22 via-transparent to-primary/12" />
             <div className="relative flex items-start justify-between gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary/45 text-primary">
@@ -76,14 +76,14 @@ export function ReportsPage() {
               <Button
                 disabled={!midtermAvailable || isDownloadingMidterm}
                 onClick={handleDownloadMidtermPdf}
-                className="h-11 w-full rounded-xl bg-gradient-to-r from-secondary/70 to-primary/55 text-secondary-foreground shadow-[0_10px_28px_rgba(50,130,184,0.25)] hover:from-secondary/80 hover:to-primary/65"
+                className="h-11 w-full rounded-xl bg-gradient-to-r from-secondary/70 to-primary/55 text-secondary-foreground shadow-[0_10px_28px_rgba(99,102,241,0.18)] hover:from-secondary/80 hover:to-primary/65"
               >
                 {isDownloadingMidterm ? 'Generating...' : midtermAvailable ? 'Available' : 'Locked'}
               </Button>
             </div>
           </article>
 
-          <article className="relative flex min-h-[360px] flex-col overflow-hidden rounded-3xl bg-card/85 p-7 shadow-[0_12px_42px_rgba(15,76,117,0.28)]">
+          <article className="relative flex min-h-[360px] flex-col overflow-hidden rounded-3xl bg-card/85 p-7 shadow-[0_12px_42px_rgba(11,18,32,0.50)]">
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-secondary/22 via-transparent to-primary/12" />
             <div className="relative flex items-start justify-between gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary/45 text-primary">
@@ -105,7 +105,7 @@ export function ReportsPage() {
             <div className="relative mt-auto pt-8">
               <Button
                 disabled={!finalUnlocked}
-                className="h-11 w-full rounded-xl bg-gradient-to-r from-secondary/70 to-primary/55 text-secondary-foreground shadow-[0_10px_28px_rgba(50,130,184,0.25)] hover:from-secondary/80 hover:to-primary/65"
+                className="h-11 w-full rounded-xl bg-gradient-to-r from-secondary/70 to-primary/55 text-secondary-foreground shadow-[0_10px_28px_rgba(99,102,241,0.18)] hover:from-secondary/80 hover:to-primary/65"
               >
                 {finalUnlocked ? 'Available' : 'Locked'}
               </Button>

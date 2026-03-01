@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
-import { Clock, BarChart3, Calendar, Target, ArrowRight, CheckCircle } from 'lucide-react';
+import { BarChart3, Calendar, Clock, Target, ArrowRight, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/Logo';
 
 const features = [
   {
@@ -39,10 +40,7 @@ export function LandingPage() {
       {/* Header */}
       <header className="border-b">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <div className="flex items-center gap-2">
-            <Clock className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">StageSync</span>
-          </div>
+          <Logo className="h-8 sm:h-9" />
           <Link to="/dashboard">
             <Button>
               Aceder ao Dashboard
