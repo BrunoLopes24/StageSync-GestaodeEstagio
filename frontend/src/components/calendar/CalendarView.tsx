@@ -19,6 +19,8 @@ import { useWorkLogs } from '@/hooks/use-work-logs';
 import { useHolidays } from '@/hooks/use-holidays';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { WorkLogDialog } from '@/components/work-log/WorkLogDialog';
+import { WorkLogViewDialog } from '@/components/work-log/WorkLogViewDialog';
+import type { WorkLog } from '@/types';
 
 interface CalendarViewProps {
   embedded?: boolean;
@@ -27,6 +29,7 @@ interface CalendarViewProps {
 export function CalendarView({ embedded = false }: CalendarViewProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [viewLog, setViewLog] = useState<WorkLog | null>(null);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -40,9 +43,9 @@ export function CalendarView({ embedded = false }: CalendarViewProps) {
   const { data: holidays } = useHolidays(currentMonth.getFullYear());
 
   const logsByDate = useMemo(() => {
-    const map = new Map<string, number>();
+    const map = new Map<string, WorkLog>();
     logsData?.data.forEach((log) => {
-      map.set(log.date.split('T')[0], log.calculatedHours);
+      map.set(log.date.split('T')[0], log);
     });
     return map;
   }, [logsData]);
@@ -81,7 +84,8 @@ export function CalendarView({ embedded = false }: CalendarViewProps) {
 
           {days.map((day) => {
             const dateStr = format(day, 'yyyy-MM-dd');
-            const hours = logsByDate.get(dateStr);
+            const existingLog = logsByDate.get(dateStr);
+            const hours = existingLog?.calculatedHours;
             const holiday = holidaysByDate.get(dateStr);
             const inMonth = isSameMonth(day, currentMonth);
             const weekend = isWeekend(day);
@@ -90,7 +94,13 @@ export function CalendarView({ embedded = false }: CalendarViewProps) {
             return (
               <button
                 key={dateStr}
-                onClick={() => setSelectedDate(dateStr)}
+                onClick={() => {
+                  if (existingLog) {
+                    setViewLog(existingLog);
+                  } else {
+                    setSelectedDate(dateStr);
+                  }
+                }}
                 className={cn(
                   'relative flex h-16 w-full flex-col items-start overflow-hidden border-b border-r p-1.5 text-left text-sm transition-colors hover:bg-accent/50',
                   !inMonth && 'opacity-30',
@@ -121,6 +131,12 @@ export function CalendarView({ embedded = false }: CalendarViewProps) {
         open={!!selectedDate}
         onClose={() => setSelectedDate(null)}
         defaultDate={selectedDate || undefined}
+      />
+
+      <WorkLogViewDialog
+        open={!!viewLog}
+        onClose={() => setViewLog(null)}
+        log={viewLog}
       />
     </>
   );
