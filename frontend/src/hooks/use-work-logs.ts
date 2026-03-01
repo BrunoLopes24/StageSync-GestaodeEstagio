@@ -81,7 +81,15 @@ export async function exportWorkLogsCsv(): Promise<void> {
   URL.revokeObjectURL(url);
 }
 
-export async function importWorkLogsCsv(content: string): Promise<{ created: number; updated: number; total: number }> {
+export interface ImportCsvResult {
+  created: number;
+  updated: number;
+  skipped: number;
+  total: number;
+  errors: { row: number; error: string }[];
+}
+
+export async function importWorkLogsCsv(content: string): Promise<ImportCsvResult> {
   const response = await fetch(`${API_BASE}/work-logs/import-csv`, {
     method: 'POST',
     headers: { 'Content-Type': 'text/csv' },

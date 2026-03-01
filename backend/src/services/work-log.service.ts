@@ -205,7 +205,7 @@ function parseCsv(content: string): Record<string, string>[] {
     .filter((line) => line.trim().length > 0);
 
   if (!lines.length) return [];
-  const headers = parseCsvLine(lines[0]).map((h) => h.trim());
+  const headers = parseCsvLine(lines[0]).map((h) => mapHeader(h));
   const rows: Record<string, string>[] = [];
 
   for (let i = 1; i < lines.length; i++) {
@@ -219,10 +219,66 @@ function parseCsv(content: string): Record<string, string>[] {
   return rows;
 }
 
-function parseWorkLogType(type: string): WorkLogType {
-  if (type === 'NORMAL' || type === 'HOLIDAY' || type === 'JUSTIFIED_ABSENCE') {
-    return type;
+const HEADER_ALIASES: Record<string, string> = {
+  date: 'date',
+  data: 'date',
+  type: 'type',
+  tipo: 'type',
+  starttime: 'startTime',
+  start_time: 'startTime',
+  'hora início': 'startTime',
+  'hora inicio': 'startTime',
+  endtime: 'endTime',
+  end_time: 'endTime',
+  'hora fim': 'endTime',
+  lunchstart: 'lunchStart',
+  lunch_start: 'lunchStart',
+  'início almoço': 'lunchStart',
+  'inicio almoco': 'lunchStart',
+  lunchend: 'lunchEnd',
+  lunch_end: 'lunchEnd',
+  'fim almoço': 'lunchEnd',
+  'fim almoco': 'lunchEnd',
+  calculatedhours: 'calculatedHours',
+  calculated_hours: 'calculatedHours',
+  hours: 'calculatedHours',
+  horas: 'calculatedHours',
+  company: 'company',
+  empresa: 'company',
+  taskdescription: 'taskDescription',
+  task_description: 'taskDescription',
+  description: 'taskDescription',
+  'descrição': 'taskDescription',
+  descricao: 'taskDescription',
+  justification: 'justification',
+  justificação: 'justification',
+  justificacao: 'justification',
+};
+
+function mapHeader(raw: string): string {
+  const key = raw.trim().toLowerCase().replace(/[_\s]+/g, (m) => m.includes('_') ? '_' : ' ');
+  return HEADER_ALIASES[key] || HEADER_ALIASES[key.replace(/[\s_]/g, '')] || raw.trim();
+}
+
+function normalizeWorkLogType(raw: string): WorkLogType | null {
+  const normalized = raw.trim().toUpperCase().replace(/[\s-]+/g, '_');
+  if (normalized === 'NORMAL' || normalized === 'HOLIDAY' || normalized === 'JUSTIFIED_ABSENCE') {
+    return normalized;
   }
+  // Try common variations
+  if (normalized === 'FERIADO') return 'HOLIDAY';
+  if (normalized === 'FALTA_JUSTIFICADA' || normalized === 'JUSTIFIED') return 'JUSTIFIED_ABSENCE';
+  return null;
+}
+
+interface RowError {
+  row: number;
+  error: string;
+}
+
+function parseWorkLogType(type: string): WorkLogType {
+  const result = normalizeWorkLogType(type);
+  if (result) return result;
   throw new AppError(400, `Invalid work log type: ${type}`);
 }
 
@@ -261,7 +317,15 @@ export async function exportWorkLogsCsv(): Promise<string> {
   return lines.join('\n');
 }
 
-export async function importWorkLogsCsv(content: string) {
+export interface ImportCsvResult {
+  created: number;
+  updated: number;
+  skipped: number;
+  total: number;
+  errors: RowError[];
+}
+
+export async function importWorkLogsCsv(content: string): Promise<ImportCsvResult> {
   // Strip UTF-8 BOM if present
   const cleaned = content.replace(/^\uFEFF/, '');
   const rows = parseCsv(cleaned);
@@ -270,73 +334,102 @@ export async function importWorkLogsCsv(content: string) {
   }
 
   const settings = await getSettings();
-  const company = settings.organizationName?.trim();
-  if (!company) {
-    throw new AppError(400, 'Defina a organização em Definições antes de importar');
-  }
+  const settingsCompany = settings.organizationName?.trim();
 
   let created = 0;
   let updated = 0;
+  let skipped = 0;
+  const errors: RowError[] = [];
 
-  for (const row of rows) {
-    const date = (row.date || '').trim();
-    if (!date) {
-      throw new AppError(400, 'CSV row missing required "date"');
-    }
+  for (let i = 0; i < rows.length; i++) {
+    const rowNum = i + 2; // +2 because row 1 is header, data starts at row 2
+    const row = rows[i];
 
-    const parsedDate = new Date(date);
-    if (isNaN(parsedDate.getTime())) {
-      throw new AppError(400, `Invalid date format in CSV: "${date}"`);
-    }
+    try {
+      // Validate date (required)
+      const date = (row.date || '').trim();
+      if (!date) {
+        errors.push({ row: rowNum, error: 'Missing required field: date' });
+        skipped++;
+        continue;
+      }
 
-    const type = parseWorkLogType((row.type || 'NORMAL').trim());
-    const startTime = row.startTime?.trim() || null;
-    const endTime = row.endTime?.trim() || null;
-    const lunchStart = row.lunchStart?.trim() || null;
-    const lunchEnd = row.lunchEnd?.trim() || null;
-    const taskDescription = row.taskDescription?.trim() || '';
-    const justification = row.justification?.trim() || null;
-    const calculatedHours = computeHours(type, startTime, endTime, lunchStart, lunchEnd);
+      const parsedDate = new Date(date);
+      if (isNaN(parsedDate.getTime())) {
+        errors.push({ row: rowNum, error: `Invalid date format: "${date}"` });
+        skipped++;
+        continue;
+      }
 
-    const existing = await prisma.workLog.findUnique({
-      where: { date: parsedDate },
-      select: { id: true },
-    });
+      // Validate and normalize type (required, defaults to NORMAL)
+      const rawType = (row.type || 'NORMAL').trim();
+      const type = normalizeWorkLogType(rawType);
+      if (!type) {
+        errors.push({ row: rowNum, error: `Invalid type: "${rawType}"` });
+        skipped++;
+        continue;
+      }
 
-    if (existing) {
-      await prisma.workLog.update({
-        where: { id: existing.id },
-        data: {
-          type,
-          startTime,
-          endTime,
-          lunchStart,
-          lunchEnd,
-          calculatedHours,
-          company,
-          taskDescription,
-          justification,
-        },
+      // Company: use CSV value, fall back to settings
+      const rowCompany = row.company?.trim();
+      const company = rowCompany || settingsCompany;
+      if (!company) {
+        errors.push({ row: rowNum, error: 'Missing company and no organization defined in settings' });
+        skipped++;
+        continue;
+      }
+
+      const startTime = row.startTime?.trim() || null;
+      const endTime = row.endTime?.trim() || null;
+      const lunchStart = row.lunchStart?.trim() || null;
+      const lunchEnd = row.lunchEnd?.trim() || null;
+      const taskDescription = row.taskDescription?.trim() || '';
+      const justification = row.justification?.trim() || null;
+      const calculatedHours = computeHours(type, startTime, endTime, lunchStart, lunchEnd);
+
+      const existing = await prisma.workLog.findUnique({
+        where: { date: parsedDate },
+        select: { id: true },
       });
-      updated++;
-    } else {
-      await prisma.workLog.create({
-        data: {
-          date: parsedDate,
-          type,
-          startTime,
-          endTime,
-          lunchStart,
-          lunchEnd,
-          calculatedHours,
-          company,
-          taskDescription,
-          justification,
-        },
-      });
-      created++;
+
+      if (existing) {
+        await prisma.workLog.update({
+          where: { id: existing.id },
+          data: {
+            type,
+            startTime,
+            endTime,
+            lunchStart,
+            lunchEnd,
+            calculatedHours,
+            company,
+            taskDescription,
+            justification,
+          },
+        });
+        updated++;
+      } else {
+        await prisma.workLog.create({
+          data: {
+            date: parsedDate,
+            type,
+            startTime,
+            endTime,
+            lunchStart,
+            lunchEnd,
+            calculatedHours,
+            company,
+            taskDescription,
+            justification,
+          },
+        });
+        created++;
+      }
+    } catch (err: any) {
+      errors.push({ row: rowNum, error: err.message || 'Unknown error' });
+      skipped++;
     }
   }
 
-  return { created, updated, total: rows.length };
+  return { created, updated, skipped, total: rows.length, errors };
 }

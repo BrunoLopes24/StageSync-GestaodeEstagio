@@ -2,7 +2,7 @@ import { useRef, useState, type ChangeEvent } from 'react';
 import { WorkLogTable } from '@/components/work-log/WorkLogTable';
 import { Button } from '@/components/ui/button';
 import { Download, Upload } from 'lucide-react';
-import { exportWorkLogsCsv, importWorkLogsCsv } from '@/hooks/use-work-logs';
+import { exportWorkLogsCsv, importWorkLogsCsv, type ImportCsvResult } from '@/hooks/use-work-logs';
 import { useQueryClient } from '@tanstack/react-query';
 
 export function WorkLogPage() {
@@ -10,6 +10,7 @@ export function WorkLogPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [importErrors, setImportErrors] = useState<ImportCsvResult['errors']>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const queryClient = useQueryClient();
 
@@ -37,12 +38,16 @@ export function WorkLogPage() {
     try {
       setIsImporting(true);
       setFeedback(null);
+      setImportErrors([]);
       const content = await file.text();
       const result = await importWorkLogsCsv(content);
       await queryClient.invalidateQueries({ queryKey: ['work-logs'] });
       await queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       await queryClient.invalidateQueries({ queryKey: ['reports'] });
-      setFeedback(`Importação concluída: ${result.created} criados, ${result.updated} atualizados.`);
+      const parts = [`${result.created} criados`, `${result.updated} atualizados`];
+      if (result.skipped > 0) parts.push(`${result.skipped} ignorados`);
+      setFeedback(`Importação concluída: ${parts.join(', ')}.`);
+      if (result.errors?.length) setImportErrors(result.errors);
       setPage(1);
     } catch (err: unknown) {
       setFeedback(getErrorMessage(err, 'Erro ao importar CSV.'));
@@ -81,6 +86,16 @@ export function WorkLogPage() {
       </div>
 
       {feedback && <p className="text-sm text-muted-foreground">{feedback}</p>}
+      {importErrors.length > 0 && (
+        <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3">
+          <p className="mb-1 text-sm font-medium text-destructive">Erros na importação:</p>
+          <ul className="space-y-0.5 text-xs text-destructive">
+            {importErrors.map((e, i) => (
+              <li key={i}>Linha {e.row}: {e.error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <WorkLogTable page={page} onPageChange={setPage} />
     </div>

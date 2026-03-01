@@ -81,7 +81,16 @@ export async function exportCsv(_req: Request, res: Response, next: NextFunction
 
 export async function importCsv(req: Request, res: Response, next: NextFunction) {
   try {
-    const content = typeof req.body === 'string' ? req.body : '';
+    let content = '';
+
+    // multipart/form-data: file uploaded via multer
+    if (req.file) {
+      content = req.file.buffer.toString('utf-8');
+    } else if (typeof req.body === 'string') {
+      // text/csv or text/plain: raw body
+      content = req.body;
+    }
+
     if (!content.trim()) throw new AppError(400, 'CSV content is required');
     const result = await workLogService.importWorkLogsCsv(content);
     res.json(result);
