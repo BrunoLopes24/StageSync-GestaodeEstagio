@@ -19,8 +19,10 @@ export function Dialog({ open, onClose, children }: DialogProps) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
       onClick={handleBackdrop}
     >
-      <div className="w-full max-w-lg rounded-lg border bg-card p-6 shadow-lg">
-        {children}
+      <div className="mx-4 flex max-h-[90dvh] w-full max-w-lg flex-col rounded-lg border bg-card shadow-lg">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+          {children}
+        </div>
       </div>
     </div>
   );

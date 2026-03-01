@@ -202,7 +202,7 @@ export function WorkLogForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
       <div>
         <label className="mb-1 block text-sm font-medium">Data</label>
         <Input type="date" {...register('date')} />
@@ -298,14 +298,14 @@ export function WorkLogForm({
           <label className="mb-1 block text-sm font-medium">Justificação</label>
           <textarea
             {...register('justification')}
-            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:min-h-[80px]"
             placeholder="Indique o motivo da ausência..."
           />
           {errors.justification && <p className="mt-1 text-xs text-destructive">{errors.justification.message}</p>}
         </div>
       )}
 
-      <div className="rounded-md border border-dashed p-3 text-sm">
+      <div className="rounded-md border border-dashed p-2 text-sm sm:p-3">
         Calculated Hours: {calculatedHours.toFixed(2)}h
       </div>
 
@@ -325,7 +325,7 @@ export function WorkLogForm({
         </label>
         <textarea
           {...register('taskDescription')}
-          className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="flex min-h-[70px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:min-h-[100px]"
           placeholder="Descreva o trabalho realizado..."
         />
         {errors.taskDescription && <p className="mt-1 text-xs text-destructive">{errors.taskDescription.message}</p>}
