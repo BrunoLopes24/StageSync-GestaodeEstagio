@@ -163,3 +163,139 @@ export async function getWorkLogCount(): Promise<number> {
 export async function getAllWorkLogs() {
   return prisma.workLog.findMany({ orderBy: { date: 'asc' } });
 }
+
+function csvEscape(value: string | null | undefined): string {
+  const raw = value ?? '';
+  if (raw.includes('"') || raw.includes(',') || raw.includes('\n') || raw.includes('\r')) {
+    return `"${raw.replace(/"/g, '""')}"`;
+  }
+  return raw;
+}
+
+function parseCsvLine(line: string): string[] {
+  const values: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (ch === ',' && !inQuotes) {
+      values.push(current);
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  values.push(current);
+  return values;
+}
+
+function parseCsv(content: string): Record<string, string>[] {
+  const lines = content
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .split('\n')
+    .filter((line) => line.trim().length > 0);
+
+  if (!lines.length) return [];
+  const headers = parseCsvLine(lines[0]).map((h) => h.trim());
+  const rows: Record<string, string>[] = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const cells = parseCsvLine(lines[i]);
+    const row: Record<string, string> = {};
+    headers.forEach((header, idx) => {
+      row[header] = cells[idx] ?? '';
+    });
+    rows.push(row);
+  }
+  return rows;
+}
+
+function parseWorkLogType(type: string): WorkLogType {
+  if (type === 'NORMAL' || type === 'HOLIDAY' || type === 'JUSTIFIED_ABSENCE') {
+    return type;
+  }
+  throw new AppError(400, `Invalid work log type: ${type}`);
+}
+
+export async function exportWorkLogsCsv(): Promise<string> {
+  const logs = await prisma.workLog.findMany({ orderBy: { date: 'asc' } });
+  const header = [
+    'date',
+    'type',
+    'startTime',
+    'endTime',
+    'lunchStart',
+    'lunchEnd',
+    'calculatedHours',
+    'company',
+    'taskDescription',
+    'justification',
+  ];
+
+  const lines = [header.join(',')];
+  for (const log of logs) {
+    lines.push(
+      [
+        log.date.toISOString().split('T')[0],
+        log.type,
+        csvEscape(log.startTime),
+        csvEscape(log.endTime),
+        csvEscape(log.lunchStart),
+        csvEscape(log.lunchEnd),
+        String(log.calculatedHours),
+        csvEscape(log.company),
+        csvEscape(log.taskDescription),
+        csvEscape(log.justification),
+      ].join(','),
+    );
+  }
+  return lines.join('\n');
+}
+
+export async function importWorkLogsCsv(content: string) {
+  const rows = parseCsv(content);
+  let created = 0;
+  let updated = 0;
+
+  for (const row of rows) {
+    const date = (row.date || '').trim();
+    if (!date) {
+      throw new AppError(400, 'CSV row missing required "date"');
+    }
+    const type = parseWorkLogType((row.type || 'NORMAL').trim());
+    const payload: Partial<CreateWorkLogData> = {
+      date,
+      type,
+      startTime: row.startTime?.trim() || undefined,
+      endTime: row.endTime?.trim() || undefined,
+      lunchStart: row.lunchStart?.trim() || undefined,
+      lunchEnd: row.lunchEnd?.trim() || undefined,
+      taskDescription: row.taskDescription?.trim() || undefined,
+      justification: row.justification?.trim() || undefined,
+    };
+
+    const existing = await prisma.workLog.findUnique({
+      where: { date: new Date(date) },
+      select: { id: true },
+    });
+
+    if (existing) {
+      await updateWorkLog(existing.id, payload);
+      updated++;
+    } else {
+      await createWorkLog(payload as CreateWorkLogData);
+      created++;
+    }
+  }
+
+  return { created, updated, total: rows.length };
+}

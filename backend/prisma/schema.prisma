@@ -54,6 +54,8 @@ model Settings {
   internshipTitle    String?  @map("internship_title")
   organizationName   String?  @map("organization_name")
   supervisorName     String?  @map("supervisor_name")
+  studentName        String?  @map("student_name")
+  studentNumber      String?  @map("student_number")
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 

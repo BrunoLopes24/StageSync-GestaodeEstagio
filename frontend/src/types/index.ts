@@ -41,6 +41,8 @@ export interface Settings {
   internshipTitle: string | null;
   organizationName: string | null;
   supervisorName: string | null;
+  studentName: string | null;
+  studentNumber: string | null;
 }
 
 export interface DashboardStats {

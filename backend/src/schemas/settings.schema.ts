@@ -8,6 +8,8 @@ export const updateSettingsSchema = z.object({
   internshipTitle: z.string().nullable().optional(),
   organizationName: z.string().nullable().optional(),
   supervisorName: z.string().nullable().optional(),
+  studentName: z.string().nullable().optional(),
+  studentNumber: z.string().nullable().optional(),
 });
 
 export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;

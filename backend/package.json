@@ -7,6 +7,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+    "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx src/seed.ts",
@@ -29,8 +30,5 @@
     "prisma": "^6.3.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0"
-  },
-  "prisma": {
-    "seed": "tsx src/seed.ts"
   }
 }

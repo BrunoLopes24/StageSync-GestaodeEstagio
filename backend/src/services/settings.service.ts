@@ -32,6 +32,8 @@ export async function updateSettings(data: UpdateSettingsInput) {
   if (data.internshipTitle !== undefined) updateData.internshipTitle = data.internshipTitle;
   if (data.organizationName !== undefined) updateData.organizationName = data.organizationName;
   if (data.supervisorName !== undefined) updateData.supervisorName = data.supervisorName;
+  if (data.studentName !== undefined) updateData.studentName = data.studentName;
+  if (data.studentNumber !== undefined) updateData.studentNumber = data.studentNumber;
 
   return prisma.settings.upsert({
     where: { id: 'default' },

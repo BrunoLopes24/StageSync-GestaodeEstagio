@@ -8,5 +8,6 @@ router.use(authPlaceholder);
 
 router.get('/weekly', controller.weekly);
 router.get('/monthly', controller.monthly);
+router.get('/midterm-pdf', controller.midtermPdf);
 
 export default router;

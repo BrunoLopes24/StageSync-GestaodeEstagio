@@ -15,6 +15,8 @@ const schema = z.object({
   internshipTitle: z.string().optional(),
   organizationName: z.string().optional(),
   supervisorName: z.string().optional(),
+  studentName: z.string().optional(),
+  studentNumber: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -41,6 +43,8 @@ export function SettingsForm() {
         internshipTitle: settings.internshipTitle || '',
         organizationName: settings.organizationName || '',
         supervisorName: settings.supervisorName || '',
+        studentName: settings.studentName || '',
+        studentNumber: settings.studentNumber || '',
       });
     }
   }, [settings, reset]);
@@ -99,6 +103,21 @@ export function SettingsForm() {
             <div>
               <label className="mb-1 block text-sm font-medium">Orientador</label>
               <Input {...register('supervisorName')} placeholder="Nome do orientador" />
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <h3 className="mb-3 text-sm font-semibold text-foreground">Informação Académica</h3>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-sm font-medium">Nome do Estudante</label>
+                <Input {...register('studentName')} placeholder="Nome completo do estudante" />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium">Número do Estudante</label>
+                <Input {...register('studentNumber')} placeholder="Número mecanográfico" />
+              </div>
             </div>
           </div>
 

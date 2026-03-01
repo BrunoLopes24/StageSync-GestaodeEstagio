@@ -64,3 +64,30 @@ export function useDeleteWorkLog() {
     },
   });
 }
+
+export async function exportWorkLogsCsv(): Promise<void> {
+  const response = await fetch('/api/v1/work-logs/export-csv');
+  if (!response.ok) throw new Error('Falha ao exportar CSV');
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'work-logs-backup.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export async function importWorkLogsCsv(content: string): Promise<{ created: number; updated: number; total: number }> {
+  const response = await fetch('/api/v1/work-logs/import-csv', {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/csv' },
+    body: content,
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ error: 'Falha ao importar CSV' }));
+    throw new Error(err.error || 'Falha ao importar CSV');
+  }
+  return response.json();
+}

@@ -20,7 +20,7 @@ services:
       context: ../backend
       dockerfile: ../docker/backend/Dockerfile
       target: builder
-    command: sh -c "npx prisma migrate deploy && npx prisma db seed && npx tsx watch src/server.ts"
+    command: sh -c "npx prisma migrate deploy && npx tsx watch src/server.ts"
     environment:
       DATABASE_URL: postgresql://stagesync:${DB_PASSWORD:-stagesync_dev}@db:5432/stagesync
       NODE_ENV: development

@@ -41,6 +41,13 @@ async function main() {
   });
   console.log('Default settings created');
 
+  const existingLogCount = await prisma.workLog.count();
+  if (existingLogCount > 0) {
+    console.log(`Skipping sample work logs seed: found ${existingLogCount} existing records`);
+    console.log('Seeding complete!');
+    return;
+  }
+
   // Create sample work logs (last 4 weeks of data)
   const today = new Date();
   const sampleLogs: {
@@ -84,26 +91,9 @@ async function main() {
     });
   }
 
-  for (const log of sampleLogs) {
-    await prisma.workLog.upsert({
-      where: { date: log.date },
-      update: {
-        type: log.type,
-        startTime: log.startTime,
-        endTime: log.endTime,
-        lunchStart: log.lunchStart,
-        lunchEnd: log.lunchEnd,
-        calculatedHours: log.calculatedHours,
-        company: log.company,
-        taskDescription: log.taskDescription,
-        justification: null,
-      },
-      create: {
-        ...log,
-        justification: null,
-      },
-    });
-  }
+  await prisma.workLog.createMany({
+    data: sampleLogs.map((log) => ({ ...log, justification: null })),
+  });
   console.log(`Created ${sampleLogs.length} sample work logs`);
 
   console.log('Seeding complete!');

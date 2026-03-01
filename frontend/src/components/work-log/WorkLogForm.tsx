@@ -182,6 +182,25 @@ export function WorkLogForm({
     [type, startTime, endTime, lunchStart, lunchEnd]
   );
 
+  const applyTimePreset = (
+    nextStartTime: string,
+    nextEndTime: string,
+    nextLunchStart?: string,
+    nextLunchEnd?: string,
+  ) => {
+    setValue('startTime', nextStartTime, { shouldDirty: true, shouldValidate: true });
+    setValue('endTime', nextEndTime, { shouldDirty: true, shouldValidate: true });
+    setValue('lunchStart', nextLunchStart, { shouldDirty: true, shouldValidate: true });
+    setValue('lunchEnd', nextLunchEnd, { shouldDirty: true, shouldValidate: true });
+  };
+
+  const clearTimeTracking = () => {
+    setValue('startTime', undefined, { shouldDirty: true, shouldValidate: true });
+    setValue('endTime', undefined, { shouldDirty: true, shouldValidate: true });
+    setValue('lunchStart', undefined, { shouldDirty: true, shouldValidate: true });
+    setValue('lunchEnd', undefined, { shouldDirty: true, shouldValidate: true });
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
@@ -205,7 +224,48 @@ export function WorkLogForm({
 
       {type === 'NORMAL' && (
         <div className="space-y-4 rounded-md border p-3">
-          <p className="text-sm font-medium">Time Tracking</p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm font-medium">Time Tracking</p>
+            <div className="text-xs text-muted-foreground">
+              Horas calculadas: <span className="font-semibold text-primary">{calculatedHours.toFixed(2)}h</span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => applyTimePreset('09:00', '17:30', '13:00', '14:00')}
+            >
+              09:00-17:30
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => applyTimePreset('09:00', '18:00', '13:00', '14:00')}
+            >
+              09:00-18:00
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => applyTimePreset('08:30', '17:00', '12:30', '13:30')}
+            >
+              08:30-17:00
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={clearTimeTracking}
+            >
+              Limpar
+            </Button>
+          </div>
+
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm">Start Time</label>

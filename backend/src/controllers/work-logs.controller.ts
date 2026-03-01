@@ -67,3 +67,25 @@ export async function remove(req: Request, res: Response, next: NextFunction) {
     }
   }
 }
+
+export async function exportCsv(_req: Request, res: Response, next: NextFunction) {
+  try {
+    const csv = await workLogService.exportWorkLogsCsv();
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="work-logs-backup.csv"');
+    res.send(csv);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function importCsv(req: Request, res: Response, next: NextFunction) {
+  try {
+    const content = typeof req.body === 'string' ? req.body : '';
+    if (!content.trim()) throw new AppError(400, 'CSV content is required');
+    const result = await workLogService.importWorkLogsCsv(content);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}

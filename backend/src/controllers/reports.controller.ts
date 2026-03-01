@@ -23,3 +23,14 @@ export async function monthly(req: Request, res: Response, next: NextFunction) {
     next(err);
   }
 }
+
+export async function midtermPdf(_req: Request, res: Response, next: NextFunction) {
+  try {
+    const pdf = await reportService.generateMidtermReportPdf();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="midterm-report.pdf"');
+    res.send(pdf);
+  } catch (err) {
+    next(err);
+  }
+}
