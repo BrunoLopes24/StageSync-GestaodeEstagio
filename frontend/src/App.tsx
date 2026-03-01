@@ -4,7 +4,6 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { LandingPage } from '@/pages/LandingPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { WorkLogPage } from '@/pages/WorkLogPage';
-import { CalendarPage } from '@/pages/CalendarPage';
 import { ReportsPage } from '@/pages/ReportsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 
@@ -26,7 +25,6 @@ function App() {
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/work-logs" element={<WorkLogPage />} />
-            <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>

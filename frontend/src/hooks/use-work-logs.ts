@@ -65,8 +65,10 @@ export function useDeleteWorkLog() {
   });
 }
 
+const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
+
 export async function exportWorkLogsCsv(): Promise<void> {
-  const response = await fetch('/api/v1/work-logs/export-csv');
+  const response = await fetch(`${API_BASE}/work-logs/export-csv`);
   if (!response.ok) throw new Error('Falha ao exportar CSV');
   const blob = await response.blob();
   const url = URL.createObjectURL(blob);
@@ -80,7 +82,7 @@ export async function exportWorkLogsCsv(): Promise<void> {
 }
 
 export async function importWorkLogsCsv(content: string): Promise<{ created: number; updated: number; total: number }> {
-  const response = await fetch('/api/v1/work-logs/import-csv', {
+  const response = await fetch(`${API_BASE}/work-logs/import-csv`, {
     method: 'POST',
     headers: { 'Content-Type': 'text/csv' },
     body: content,
