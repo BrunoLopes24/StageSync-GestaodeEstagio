@@ -20,6 +20,7 @@ services:
       context: ../backend
       dockerfile: ../docker/backend/Dockerfile
       target: builder
+    working_dir: /app
     command: sh -c "npx prisma migrate deploy && npx tsx watch src/server.ts"
     environment:
       DATABASE_URL: postgresql://stagesync:${DB_PASSWORD:-stagesync_dev}@db:5432/stagesync
@@ -29,11 +30,28 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ../backend/src:/app/src
-      - ../backend/prisma:/app/prisma
+      - ../backend:/app
+      - /app/node_modules
     depends_on:
       db:
         condition: service_healthy
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/frontend/Dockerfile
+      target: builder
+    working_dir: /app
+    command: npx vite --host 0.0.0.0
+    environment:
+      NODE_ENV: development
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
 
 volumes:
   pgdata-dev:
