@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useDashboard } from '@/hooks/use-dashboard';
 import { ProgressRing } from '@/components/dashboard/ProgressRing';
 import { StatsCards } from '@/components/dashboard/StatsCards';
-import { PredictionCard } from '@/components/dashboard/PredictionCard';
+import { CalendarView } from '@/components/calendar/CalendarView';
 import { RecentLogs } from '@/components/dashboard/RecentLogs';
 import { WorkLogDialog } from '@/components/work-log/WorkLogDialog';
 import { Button } from '@/components/ui/button';
@@ -41,13 +41,17 @@ export function DashboardPage() {
 
       <StatsCards stats={stats} />
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="flex items-center justify-center rounded-lg border bg-card p-8">
-          <div className="relative flex items-center justify-center">
-            <ProgressRing percent={stats.percentComplete} />
+      <div className="rounded-lg border bg-card">
+        <div className="flex flex-col lg:flex-row">
+          <div className="min-w-0 flex-1">
+            <CalendarView embedded />
+          </div>
+          <div className="flex items-center justify-center p-8 lg:w-64">
+            <div className="relative flex items-center justify-center">
+              <ProgressRing percent={stats.percentComplete} size={160} strokeWidth={10} />
+            </div>
           </div>
         </div>
-        <PredictionCard stats={stats} />
       </div>
 
       <RecentLogs />

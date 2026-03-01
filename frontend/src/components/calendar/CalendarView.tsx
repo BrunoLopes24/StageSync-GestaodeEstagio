@@ -20,7 +20,11 @@ import { useHolidays } from '@/hooks/use-holidays';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { WorkLogDialog } from '@/components/work-log/WorkLogDialog';
 
-export function CalendarView() {
+interface CalendarViewProps {
+  embedded?: boolean;
+}
+
+export function CalendarView({ embedded = false }: CalendarViewProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
@@ -55,7 +59,7 @@ export function CalendarView() {
 
   return (
     <>
-      <div className="rounded-lg border bg-card">
+      <div className={cn('rounded-lg bg-card', !embedded && 'border')}>
         <div className="flex items-center justify-between border-b p-4">
           <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
             <ChevronLeft className="h-4 w-4" />
@@ -88,7 +92,7 @@ export function CalendarView() {
                 key={dateStr}
                 onClick={() => setSelectedDate(dateStr)}
                 className={cn(
-                  'relative flex h-20 flex-col items-start border-b border-r p-1.5 text-left text-sm transition-colors hover:bg-accent/50',
+                  'relative flex h-16 w-full flex-col items-start overflow-hidden border-b border-r p-1.5 text-left text-sm transition-colors hover:bg-accent/50',
                   !inMonth && 'opacity-30',
                   today && 'ring-2 ring-inset ring-primary',
                   weekend && 'bg-muted/30'
@@ -98,12 +102,12 @@ export function CalendarView() {
                   {format(day, 'd')}
                 </span>
                 {hours !== undefined && (
-                  <span className="mt-auto rounded bg-primary/20 px-1 text-xs font-medium text-primary">
+                  <span className="mt-auto max-w-full truncate rounded bg-primary/20 px-1 text-[10px] font-medium text-primary sm:text-xs">
                     {hours.toFixed(1)}h
                   </span>
                 )}
                 {holiday && (
-                  <span className="mt-0.5 truncate rounded bg-destructive/20 px-1 text-[10px] text-destructive" title={holiday}>
+                  <span className="mt-0.5 max-w-full truncate rounded bg-destructive/20 px-1 text-[10px] text-destructive" title={holiday}>
                     {holiday}
                   </span>
                 )}

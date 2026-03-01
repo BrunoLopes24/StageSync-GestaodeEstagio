@@ -3,7 +3,6 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
   Clock,
-  Calendar,
   BarChart3,
   Settings,
 } from 'lucide-react';
@@ -11,7 +10,6 @@ import {
 const links = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/work-logs', label: 'Registo Diário', icon: Clock },
-  { to: '/calendar', label: 'Calendário', icon: Calendar },
   { to: '/reports', label: 'Relatórios', icon: BarChart3 },
   { to: '/settings', label: 'Definições', icon: Settings },
 ];
