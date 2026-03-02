@@ -40,7 +40,7 @@ const highlights = [
   'Feriados nacionais portugueses incluídos',
   'Previsão dinâmica de conclusão',
   'Dashboard com estatísticas em tempo real',
-  'Pronto para integração com autenticação',
+  'Autenticação institucional segura',
 ];
 
 const mockLogs = [
@@ -56,9 +56,9 @@ export function LandingPage() {
       <header className="border-b">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Logo className="h-8 sm:h-9" />
-          <Link to="/dashboard">
+          <Link to="/login">
             <Button>
-              Aceder ao Dashboard
+              Iniciar Sessão
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
@@ -77,7 +77,7 @@ export function LandingPage() {
               Acompanhe as suas 640 horas de estágio com previsão inteligente,
               calendário interativo e relatórios detalhados.
             </p>
-            <Link to="/dashboard" className="mt-6 inline-block">
+            <Link to="/login" className="mt-6 inline-block">
               <Button size="lg">
                 Começar Agora
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -192,9 +192,9 @@ export function LandingPage() {
           <p className="mb-4 text-muted-foreground">
             Comece a registar as suas horas de estágio agora mesmo.
           </p>
-          <Link to="/dashboard">
+          <Link to="/login">
             <Button size="lg">
-              Aceder ao Dashboard
+              Iniciar Sessão
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
