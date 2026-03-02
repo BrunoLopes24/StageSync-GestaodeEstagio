@@ -141,13 +141,13 @@ export async function issueTokens(
     email,
   };
 
-const accessToken = jwt.sign(
-  payload,
-  process.env.JWT_ACCESS_SECRET as Secret,
-  {
-    expiresIn: process.env.JWT_ACCESS_EXPIRES_IN ?? '15m',
-  } as SignOptions
-);
+  const accessToken = jwt.sign(
+    payload,
+    config.jwtAccessSecret as Secret,
+    {
+      expiresIn: config.jwtAccessExpiresIn,
+    } as SignOptions,
+  );
 
   const refreshToken = crypto.randomBytes(48).toString('hex');
   const refreshTokenHash = hashToken(refreshToken);

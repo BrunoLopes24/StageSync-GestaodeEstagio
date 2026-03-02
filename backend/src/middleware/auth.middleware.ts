@@ -8,6 +8,9 @@ declare global {
   namespace Express {
     interface Request {
       userId?: string;
+      userRole?: string;
+      studentNumber?: string;
+      userEmail?: string;
       sessionId?: string;
     }
   }
@@ -49,6 +52,9 @@ export async function authMiddleware(req: Request, _res: Response, next: NextFun
     }
 
     req.userId = decoded.sub;
+    req.userRole = decoded.role;
+    req.studentNumber = decoded.studentNumber;
+    req.userEmail = decoded.email;
     req.sessionId = activeSession.id;
 
     next();
