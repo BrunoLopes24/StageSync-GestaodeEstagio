@@ -7,15 +7,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum WorkLogType {
-  NORMAL
-  HOLIDAY
-  JUSTIFIED_ABSENCE
-}
-
 model WorkLog {
   id              String      @id @default(uuid())
-  date            DateTime    @db.Date
+  date            DateTime    @unique @db.Date
   type            WorkLogType @default(NORMAL)
   startTime       String?     @map("start_time")
   endTime         String?     @map("end_time")
@@ -29,19 +23,17 @@ model WorkLog {
   createdAt       DateTime    @default(now()) @map("created_at")
   updatedAt       DateTime    @updatedAt @map("updated_at")
 
-  @@unique([date])
   @@map("work_logs")
 }
 
 model Holiday {
   id        String   @id @default(uuid())
-  date      DateTime @db.Date
+  date      DateTime @unique @db.Date
   name      String
   movable   Boolean  @default(false)
   year      Int
   createdAt DateTime @default(now()) @map("created_at")
 
-  @@unique([date])
   @@index([year])
   @@map("holidays")
 }
@@ -50,8 +42,8 @@ model Settings {
   id                 String   @id @default("default")
   totalRequiredHours Float    @default(640) @map("total_required_hours")
   dailyWorkHours     Float    @default(7) @map("daily_work_hours")
-  workingDays        Json     @default("[1,2,3,4,5]") @map("working_days")
-  startDate          DateTime @db.Date @map("start_date")
+  workingDays        Json     @default("[1, 2, 3, 4, 5]") @map("working_days")
+  startDate          DateTime @map("start_date") @db.Date
   internshipTitle    String?  @map("internship_title")
   organizationName   String?  @map("organization_name")
   supervisorName     String?  @map("supervisor_name")
@@ -146,4 +138,10 @@ model PasswordResetToken {
 
   @@index([tokenHash])
   @@map("password_reset_tokens")
+}
+
+enum WorkLogType {
+  NORMAL
+  HOLIDAY
+  JUSTIFIED_ABSENCE
 }
