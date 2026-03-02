@@ -41,6 +41,40 @@ async function main() {
   });
   console.log('Default settings created');
 
+  // Seed Institution
+  const institution = await prisma.institution.upsert({
+    where: { domain: 'ipt.pt' },
+    update: {},
+    create: {
+      name: 'Instituto Politécnico de Tomar',
+      domain: 'ipt.pt',
+      isActive: true,
+    },
+  });
+  console.log(`Seeded institution: ${institution.name}`);
+
+  // Seed StudentIdentity (do NOT create User — created on first login)
+  await prisma.studentIdentity.upsert({
+    where: {
+      studentNumber_institutionId: {
+        studentNumber: '27767',
+        institutionId: institution.id,
+      },
+    },
+    update: {
+      institutionalEmail: 'aluno27767@ipt.pt',
+      isActive: true,
+    },
+    create: {
+      studentNumber: '27767',
+      institutionalEmail: 'aluno27767@ipt.pt',
+      isActive: true,
+      needsPasswordSetup: true,
+      institutionId: institution.id,
+    },
+  });
+  console.log('Seeded student identity: 27767');
+
   const existingLogCount = await prisma.workLog.count();
   if (existingLogCount > 0) {
     console.log(`Skipping sample work logs seed: found ${existingLogCount} existing records`);

@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { config } from './config';
 import routes from './routes';
+import authRoutes from './routes/auth.routes';
 import { errorHandler } from './middleware/error-handler';
 
 const app = express();
@@ -27,6 +28,7 @@ app.get('/api/v1/health', (_req, res) => {
 });
 
 app.use('/api/v1', routes);
+app.use('/api/auth', authRoutes);
 
 app.use(errorHandler);
 
