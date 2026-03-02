@@ -14,12 +14,12 @@ export async function getHolidays(year: number) {
 export async function generateHolidays(year: number) {
   const holidays = getPortugueseHolidays(year);
 
+  await prisma.holiday.deleteMany({ where: { year } });
+
   const results = [];
   for (const holiday of holidays) {
-    const result = await prisma.holiday.upsert({
-      where: { date: holiday.date },
-      update: { name: holiday.name, movable: holiday.movable, year },
-      create: {
+    const result = await prisma.holiday.create({
+      data: {
         date: holiday.date,
         name: holiday.name,
         movable: holiday.movable,
