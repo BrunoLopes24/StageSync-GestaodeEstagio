@@ -15,7 +15,7 @@ export function ReportsPage() {
   const finalRemaining = Math.max(0, finalRequired - totalHours);
   const midtermUnlocked = midtermRemaining === 0;
   const finalUnlocked = finalRemaining === 0;
-  const midtermAvailable = true;
+  const midtermAvailable = midtermUnlocked;
 
   async function handleDownloadMidtermPdf() {
     try {

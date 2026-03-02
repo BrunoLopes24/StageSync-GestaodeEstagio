@@ -1,16 +1,20 @@
 import { Menu, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/Logo';
 import { useAuth } from '@/context/AuthContext';
+import { useSettings } from '@/hooks/use-settings';
 
 interface TopBarProps {
   onMenuClick: () => void;
-  title: string;
 }
 
-export function TopBar({ onMenuClick, title }: TopBarProps) {
+export function TopBar({ onMenuClick }: TopBarProps) {
   const { user, logout } = useAuth();
+  const { data: settings } = useSettings();
   const navigate = useNavigate();
+
+  const displayName = settings?.studentName || user?.studentNumber || user?.email || '';
 
   async function handleLogout() {
     await logout();
@@ -27,12 +31,13 @@ export function TopBar({ onMenuClick, title }: TopBarProps) {
       >
         <Menu className="h-5 w-5" />
       </Button>
-      <h1 className="text-lg font-semibold">{title}</h1>
+
+      <Logo className="h-7 lg:hidden" />
 
       <div className="ml-auto flex items-center gap-3">
-        {user && (
+        {displayName && (
           <span className="text-sm text-muted-foreground">
-            {user.studentNumber}
+            {displayName}
           </span>
         )}
         <Button variant="ghost" size="icon" onClick={handleLogout} title="Terminar sessão">

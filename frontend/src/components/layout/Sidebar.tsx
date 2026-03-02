@@ -32,7 +32,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-16 items-center border-b px-6">
+        <div className="flex h-16 items-center justify-center border-b px-6">
           <Logo className="h-7" />
         </div>
 

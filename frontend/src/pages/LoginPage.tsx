@@ -3,7 +3,8 @@ import { useNavigate, Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { LogIn, Loader2 } from 'lucide-react';
+import { LogIn, Loader2, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,13 +54,11 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="flex justify-center">
-          <Logo className="h-10" />
-        </div>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8">
+      <div className="flex w-full max-w-sm flex-col items-center">
+        <Logo className="mb-8 h-10" />
 
-        <Card>
+        <Card className="w-full">
           <CardHeader className="text-center">
             <CardTitle>Iniciar Sessão</CardTitle>
             <CardDescription>
@@ -116,6 +115,14 @@ export function LoginPage() {
             </form>
           </CardContent>
         </Card>
+
+        <Link
+          to="/"
+          className="mt-6 inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Voltar à página inicial
+        </Link>
       </div>
     </div>
   );
