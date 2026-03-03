@@ -10,7 +10,7 @@ export async function list(req: Request, res: Response, next: NextFunction) {
       page: req.query.page ? parseInt(req.query.page as string, 10) : undefined,
       limit: req.query.limit ? parseInt(req.query.limit as string, 10) : undefined,
     };
-    const result = await workLogService.getWorkLogs(filters);
+    const result = await workLogService.getWorkLogs(filters, req.userId!);
     res.json(result);
   } catch (err) {
     next(err);
@@ -19,7 +19,7 @@ export async function list(req: Request, res: Response, next: NextFunction) {
 
 export async function getById(req: Request, res: Response, next: NextFunction) {
   try {
-    const log = await workLogService.getWorkLogById(String(req.params.id));
+    const log = await workLogService.getWorkLogById(String(req.params.id), req.userId!);
     if (!log) throw new AppError(404, 'Work log not found');
     res.json(log);
   } catch (err) {
@@ -29,7 +29,7 @@ export async function getById(req: Request, res: Response, next: NextFunction) {
 
 export async function create(req: Request, res: Response, next: NextFunction) {
   try {
-    const log = await workLogService.createWorkLog(req.body);
+    const log = await workLogService.createWorkLog(req.body, req.userId!);
     res.status(201).json(log);
   } catch (err: any) {
     if (err.code === 'P2002') {
@@ -42,7 +42,7 @@ export async function create(req: Request, res: Response, next: NextFunction) {
 
 export async function update(req: Request, res: Response, next: NextFunction) {
   try {
-    const log = await workLogService.updateWorkLog(String(req.params.id), req.body);
+    const log = await workLogService.updateWorkLog(String(req.params.id), req.body, req.userId!);
     res.json(log);
   } catch (err: any) {
     if (err.code === 'P2025') {
@@ -57,7 +57,7 @@ export async function update(req: Request, res: Response, next: NextFunction) {
 
 export async function remove(req: Request, res: Response, next: NextFunction) {
   try {
-    await workLogService.deleteWorkLog(String(req.params.id));
+    await workLogService.deleteWorkLog(String(req.params.id), req.userId!);
     res.status(204).end();
   } catch (err: any) {
     if (err.code === 'P2025') {
@@ -68,9 +68,9 @@ export async function remove(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export async function exportCsv(_req: Request, res: Response, next: NextFunction) {
+export async function exportCsv(req: Request, res: Response, next: NextFunction) {
   try {
-    const csv = await workLogService.exportWorkLogsCsv();
+    const csv = await workLogService.exportWorkLogsCsv(req.userId!);
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="work-logs-backup.csv"');
     res.send(csv);
@@ -92,7 +92,7 @@ export async function importCsv(req: Request, res: Response, next: NextFunction)
     }
 
     if (!content.trim()) throw new AppError(400, 'CSV content is required');
-    const result = await workLogService.importWorkLogsCsv(content);
+    const result = await workLogService.importWorkLogsCsv(content, req.userId!);
     res.json(result);
   } catch (err: any) {
     if (err instanceof AppError) return next(err);

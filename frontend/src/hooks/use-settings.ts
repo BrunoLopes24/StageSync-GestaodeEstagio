@@ -2,9 +2,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { Settings } from '@/types';
 
-export function useSettings() {
+interface UseSettingsOptions {
+  enabled?: boolean;
+  userId?: string;
+}
+
+export function useSettings(options?: UseSettingsOptions) {
   return useQuery({
-    queryKey: ['settings'],
+    queryKey: ['settings', options?.userId || 'anonymous'],
+    enabled: options?.enabled ?? true,
     queryFn: () => api.get<Settings>('/settings'),
   });
 }

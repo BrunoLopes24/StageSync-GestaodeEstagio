@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { getAccessToken } from '@/lib/tokenManager';
+import { resolveApiBase } from '@/lib/api-base';
 import type { WorkLog, WorkLogListResponse, WorkLogType } from '@/types';
 
 export interface WorkLogInput {
@@ -65,10 +67,20 @@ export function useDeleteWorkLog() {
   });
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
+const API_BASE = resolveApiBase();
+
+function buildAuthHeaders(contentType?: string): HeadersInit {
+  const headers: Record<string, string> = {};
+  if (contentType) headers['Content-Type'] = contentType;
+  const token = getAccessToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
 
 export async function exportWorkLogsCsv(): Promise<void> {
-  const response = await fetch(`${API_BASE}/work-logs/export-csv`);
+  const response = await fetch(`${API_BASE}/work-logs/export-csv`, {
+    headers: buildAuthHeaders(),
+  });
   if (!response.ok) throw new Error('Falha ao exportar CSV');
   const blob = await response.blob();
   const url = URL.createObjectURL(blob);
@@ -92,7 +104,7 @@ export interface ImportCsvResult {
 export async function importWorkLogsCsv(content: string): Promise<ImportCsvResult> {
   const response = await fetch(`${API_BASE}/work-logs/import-csv`, {
     method: 'POST',
-    headers: { 'Content-Type': 'text/csv' },
+    headers: buildAuthHeaders('text/csv'),
     body: content,
   });
   if (!response.ok) {

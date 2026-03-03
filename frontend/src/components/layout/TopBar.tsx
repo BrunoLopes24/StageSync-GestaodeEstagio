@@ -11,10 +11,16 @@ interface TopBarProps {
 
 export function TopBar({ onMenuClick }: TopBarProps) {
   const { user, logout } = useAuth();
-  const { data: settings } = useSettings();
+  const isStudent = user?.role === 'STUDENT';
+  const { data: settings } = useSettings({
+    enabled: isStudent && !!user?.id,
+    userId: user?.id,
+  });
   const navigate = useNavigate();
 
-  const displayName = settings?.studentName || user?.studentNumber || user?.email || '';
+  const displayName = isStudent
+    ? (settings?.studentName || user?.studentNumber || user?.email || '')
+    : (user?.studentNumber || user?.email || '');
 
   async function handleLogout() {
     await logout();

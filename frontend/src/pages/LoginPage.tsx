@@ -19,7 +19,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginPage() {
-  const { login, isAuthenticated, loading: authLoading } = useAuth();
+  const { login, isAuthenticated, loading: authLoading, user } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 
@@ -40,14 +40,16 @@ export function LoginPage() {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    const target = user?.role === 'ADMIN' ? '/admin' : '/dashboard';
+    return <Navigate to={target} replace />;
   }
 
   async function onSubmit(data: LoginFormData) {
     setError(null);
     try {
-      await login(data.identifier, data.password);
-      navigate('/dashboard', { replace: true });
+      const loggedInUser = await login(data.identifier, data.password);
+      const target = loggedInUser.role === 'ADMIN' ? '/admin' : '/dashboard';
+      navigate(target, { replace: true });
     } catch {
       setError('Credenciais inválidas');
     }

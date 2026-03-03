@@ -1,6 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { formatHours } from '@/lib/utils';
 import { useDashboard } from '@/hooks/use-dashboard';
+import { resolveApiBase } from '@/lib/api-base';
+import { getAccessToken } from '@/lib/tokenManager';
 import { ClipboardList, FileCheck2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -16,11 +18,15 @@ export function ReportsPage() {
   const midtermUnlocked = midtermRemaining === 0;
   const finalUnlocked = finalRemaining === 0;
   const midtermAvailable = midtermUnlocked;
+  const apiBase = resolveApiBase();
 
   async function handleDownloadMidtermPdf() {
     try {
       setIsDownloadingMidterm(true);
-      const response = await fetch('/api/v1/reports/midterm-pdf');
+      const token = getAccessToken();
+      const response = await fetch(`${apiBase}/reports/midterm-pdf`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
       if (!response.ok) throw new Error('Falha ao gerar PDF');
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);

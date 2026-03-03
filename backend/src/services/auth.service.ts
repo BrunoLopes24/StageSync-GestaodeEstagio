@@ -95,11 +95,15 @@ export async function handlePasswordSetup(studentIdentityId: string, password: s
 
   const passwordHash = await argon2.hash(password);
 
+  // All users created via first-login flow are students.
+  // Admin accounts are pre-seeded and never go through this path.
+  const role = 'STUDENT';
+
   const user = await prisma.$transaction(async (tx) => {
     const newUser = await tx.user.create({
       data: {
         passwordHash,
-        role: 'STUDENT',
+        role,
         studentIdentityId,
       },
     });

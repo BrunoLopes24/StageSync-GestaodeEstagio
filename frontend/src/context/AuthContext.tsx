@@ -14,7 +14,7 @@ interface AuthContextValue {
   user: AuthUser | null;
   isAuthenticated: boolean;
   loading: boolean;
-  login: (identifier: string, password: string) => Promise<void>;
+  login: (identifier: string, password: string) => Promise<AuthUser>;
   logout: () => Promise<void>;
   refreshAuth: () => Promise<void>;
 }
@@ -43,10 +43,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const login = useCallback(async (identifier: string, password: string) => {
+  const login = useCallback(async (identifier: string, password: string): Promise<AuthUser> => {
     const data = await authService.login(identifier, password);
     setTokens(data.accessToken, data.refreshToken);
     setUser(data.user);
+    return data.user;
   }, []);
 
   const logout = useCallback(async () => {

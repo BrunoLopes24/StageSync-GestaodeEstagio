@@ -8,9 +8,10 @@ export const loginSchema = z.object({
       (val) => {
         const isStudentNumber = /^\d+$/.test(val);
         const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
-        return isStudentNumber || isEmail;
+        const isUsername = /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(val);
+        return isStudentNumber || isEmail || isUsername;
       },
-      { message: 'Identifier must be a student number or institutional email' },
+      { message: 'Identifier must be a student number, username, or institutional email' },
     ),
   password: z.string().min(1, 'Password is required'),
 });

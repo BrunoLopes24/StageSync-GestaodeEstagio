@@ -4,12 +4,14 @@ import multer from 'multer';
 import * as controller from '../controllers/work-logs.controller';
 import { validate } from '../middleware/validate';
 import { createWorkLogSchema, updateWorkLogSchema } from '../schemas/work-log.schema';
-import { authPlaceholder } from '../middleware/auth-placeholder';
+import { authMiddleware } from '../middleware/auth.middleware';
+import { requireStudent } from '../middleware/require-student';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
-router.use(authPlaceholder);
+router.use(authMiddleware);
+router.use(requireStudent);
 
 router.get('/', controller.list);
 router.get('/export-csv', controller.exportCsv);

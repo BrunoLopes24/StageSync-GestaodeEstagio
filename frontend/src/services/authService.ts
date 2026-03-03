@@ -1,12 +1,6 @@
 import type { LoginResponse, RefreshResponse } from '@/types/auth';
 import { getRefreshToken } from '@/lib/tokenManager';
-
-function resolveApiBase(): string {
-  const raw = (import.meta.env.VITE_API_URL || '/api/v1').replace(/\/+$/, '');
-  if (raw.endsWith('/api/v1')) return raw;
-  if (raw.endsWith('/api')) return `${raw}/v1`;
-  return `${raw}/api/v1`;
-}
+import { resolveApiBase } from '@/lib/api-base';
 
 const API_BASE = resolveApiBase();
 

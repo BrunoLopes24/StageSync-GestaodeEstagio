@@ -1,12 +1,6 @@
 import { getAccessToken, setTokens, clearTokens } from '@/lib/tokenManager';
 import { refreshToken as refreshAuthToken } from '@/services/authService';
-
-function resolveApiBase(): string {
-  const raw = (import.meta.env.VITE_API_URL || '/api/v1').replace(/\/+$/, '');
-  if (raw.endsWith('/api/v1')) return raw;
-  if (raw.endsWith('/api')) return `${raw}/v1`;
-  return `${raw}/api/v1`;
-}
+import { resolveApiBase } from '@/lib/api-base';
 
 const API_BASE = resolveApiBase();
 
@@ -87,5 +81,7 @@ export const api = {
     request<T>(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
   put: <T>(path: string, body: unknown) =>
     request<T>(path, { method: 'PUT', body: JSON.stringify(body) }),
+  patch: <T>(path: string, body?: unknown) =>
+    request<T>(path, { method: 'PATCH', body: body ? JSON.stringify(body) : undefined }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 };

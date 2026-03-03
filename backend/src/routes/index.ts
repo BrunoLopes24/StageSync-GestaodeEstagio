@@ -4,6 +4,7 @@ import settingsRoutes from './settings.routes';
 import holidaysRoutes from './holidays.routes';
 import dashboardRoutes from './dashboard.routes';
 import reportsRoutes from './reports.routes';
+import adminRoutes from './admin.routes';
 
 const router = Router();
 
@@ -12,5 +13,6 @@ router.use('/settings', settingsRoutes);
 router.use('/holidays', holidaysRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/reports', reportsRoutes);
+router.use('/admin', adminRoutes);
 
 export default router;

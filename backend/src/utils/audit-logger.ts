@@ -3,7 +3,16 @@ type AuditEvent =
   | 'LOGIN_SUCCESS'
   | 'TOKEN_REFRESH'
   | 'TOKEN_REFRESH_FAILED'
-  | 'LOGOUT';
+  | 'LOGOUT'
+  | 'ADMIN_LIST_STUDENTS'
+  | 'ADMIN_VIEW_LOGS'
+  | 'ADMIN_APPROVE_LOG'
+  | 'ADMIN_REJECT_LOG'
+  | 'ADMIN_VIEW_SESSIONS'
+  | 'ADMIN_REVOKE_SESSION'
+  | 'ADMIN_ADD_HOLIDAY'
+  | 'ADMIN_REMOVE_HOLIDAY'
+  | 'ADMIN_VIEW_DASHBOARD';
 
 interface AuditData {
   userId?: string;
@@ -12,6 +21,8 @@ interface AuditData {
   userAgent?: string;
   reason?: string;
   isNewAccount?: boolean;
+  targetId?: string;
+  details?: string;
 }
 
 export function auditLog(event: AuditEvent, data: AuditData): void {

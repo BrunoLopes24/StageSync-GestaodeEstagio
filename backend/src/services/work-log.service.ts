@@ -31,9 +31,9 @@ export function computeHours(
   return Math.max(0, Math.round((mins / 60) * 100) / 100);
 }
 
-export async function getWorkLogs(filters: WorkLogFilters) {
+export async function getWorkLogs(filters: WorkLogFilters, userId: string) {
   const { from, to, page = 1, limit = 50 } = filters;
-  const where: any = {};
+  const where: any = { userId };
 
   if (from || to) {
     where.date = {};
@@ -54,8 +54,8 @@ export async function getWorkLogs(filters: WorkLogFilters) {
   return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
-export async function getWorkLogById(id: string) {
-  return prisma.workLog.findUnique({ where: { id } });
+export async function getWorkLogById(id: string, userId: string) {
+  return prisma.workLog.findFirst({ where: { id, userId } });
 }
 
 export interface CreateWorkLogData {
@@ -70,7 +70,7 @@ export interface CreateWorkLogData {
   justification?: string;
 }
 
-export async function createWorkLog(data: CreateWorkLogData) {
+export async function createWorkLog(data: CreateWorkLogData, userId: string) {
   const settings = await getSettings();
   const company = settings.organizationName?.trim();
   if (!company) {
@@ -97,37 +97,42 @@ export async function createWorkLog(data: CreateWorkLogData) {
       company,
       taskDescription,
       justification,
+      userId,
     },
   });
 }
 
-export async function updateWorkLog(id: string, data: Partial<CreateWorkLogData>) {
+export async function updateWorkLog(id: string, data: Partial<CreateWorkLogData>, userId: string) {
   const settings = await getSettings();
   const company = settings.organizationName?.trim();
   if (!company) {
     throw new AppError(400, 'Defina a organização em Definições para atualizar registos');
   }
 
-  const existing = await prisma.workLog.findUnique({ where: { id } });
-  const type = data.type ?? existing?.type ?? 'NORMAL';
+  const existing = await prisma.workLog.findFirst({ where: { id, userId } });
+  if (!existing) {
+    throw new AppError(404, 'Work log not found');
+  }
+
+  const type = data.type ?? existing.type ?? 'NORMAL';
   const startTime = type === 'NORMAL'
-    ? (data.startTime !== undefined ? data.startTime : existing?.startTime)
+    ? (data.startTime !== undefined ? data.startTime : existing.startTime)
     : null;
   const endTime = type === 'NORMAL'
-    ? (data.endTime !== undefined ? data.endTime : existing?.endTime)
+    ? (data.endTime !== undefined ? data.endTime : existing.endTime)
     : null;
   const lunchStart = type === 'NORMAL'
-    ? (data.lunchStart !== undefined ? data.lunchStart : existing?.lunchStart)
+    ? (data.lunchStart !== undefined ? data.lunchStart : existing.lunchStart)
     : null;
   const lunchEnd = type === 'NORMAL'
-    ? (data.lunchEnd !== undefined ? data.lunchEnd : existing?.lunchEnd)
+    ? (data.lunchEnd !== undefined ? data.lunchEnd : existing.lunchEnd)
     : null;
   const justification = type === 'JUSTIFIED_ABSENCE'
-    ? (data.justification !== undefined ? data.justification : existing?.justification)
+    ? (data.justification !== undefined ? data.justification : existing.justification)
     : null;
   const taskDescription = data.taskDescription !== undefined
     ? data.taskDescription
-    : existing?.taskDescription;
+    : existing.taskDescription;
   const calculatedHours = computeHours(type, startTime, endTime, lunchStart, lunchEnd);
 
   const updateData: any = { calculatedHours };
@@ -144,24 +149,28 @@ export async function updateWorkLog(id: string, data: Partial<CreateWorkLogData>
   return prisma.workLog.update({ where: { id }, data: updateData });
 }
 
-export async function deleteWorkLog(id: string) {
+export async function deleteWorkLog(id: string, userId: string) {
+  const existing = await prisma.workLog.findFirst({ where: { id, userId } });
+  if (!existing) {
+    throw new AppError(404, 'Work log not found');
+  }
   return prisma.workLog.delete({ where: { id } });
 }
 
-export async function getTotalHoursLogged(): Promise<number> {
+export async function getTotalHoursLogged(userId: string): Promise<number> {
   const result = await prisma.workLog.aggregate({
     _sum: { calculatedHours: true },
-    where: { type: 'NORMAL' },
+    where: { type: 'NORMAL', userId },
   });
   return result._sum.calculatedHours || 0;
 }
 
-export async function getWorkLogCount(): Promise<number> {
-  return prisma.workLog.count({ where: { type: 'NORMAL' } });
+export async function getWorkLogCount(userId: string): Promise<number> {
+  return prisma.workLog.count({ where: { type: 'NORMAL', userId } });
 }
 
-export async function getAllWorkLogs() {
-  return prisma.workLog.findMany({ orderBy: { date: 'asc' } });
+export async function getAllWorkLogs(userId: string) {
+  return prisma.workLog.findMany({ where: { userId }, orderBy: { date: 'asc' } });
 }
 
 function csvEscape(value: string | null | undefined): string {
@@ -311,8 +320,8 @@ function parseWorkLogType(type: string): WorkLogType {
   throw new AppError(400, `Invalid work log type: ${type}`);
 }
 
-export async function exportWorkLogsCsv(): Promise<string> {
-  const logs = await prisma.workLog.findMany({ orderBy: { date: 'asc' } });
+export async function exportWorkLogsCsv(userId: string): Promise<string> {
+  const logs = await prisma.workLog.findMany({ where: { userId }, orderBy: { date: 'asc' } });
   const header = [
     'date',
     'type',
@@ -354,7 +363,7 @@ export interface ImportCsvResult {
   errors: RowError[];
 }
 
-export async function importWorkLogsCsv(content: string): Promise<ImportCsvResult> {
+export async function importWorkLogsCsv(content: string, userId: string): Promise<ImportCsvResult> {
   // Strip UTF-8 BOM if present
   const cleaned = content.replace(/^\uFEFF/, '');
   const rows = parseCsv(cleaned);
@@ -434,6 +443,7 @@ export async function importWorkLogsCsv(content: string): Promise<ImportCsvResul
             company,
             taskDescription,
             justification,
+            userId,
           },
         });
         updated++;
@@ -450,6 +460,7 @@ export async function importWorkLogsCsv(content: string): Promise<ImportCsvResul
             company,
             taskDescription,
             justification,
+            userId,
           },
         });
         created++;

@@ -16,10 +16,10 @@ export interface DashboardStats {
   startDate: string;
 }
 
-export async function calculateDashboardStats(): Promise<DashboardStats> {
+export async function calculateDashboardStats(userId: string): Promise<DashboardStats> {
   const settings = await getSettings();
-  const totalHoursLogged = await getTotalHoursLogged();
-  const daysWorked = await getWorkLogCount();
+  const totalHoursLogged = await getTotalHoursLogged(userId);
+  const daysWorked = await getWorkLogCount(userId);
 
   const totalRequiredHours = settings.totalRequiredHours;
   const remainingHours = Math.max(0, totalRequiredHours - totalHoursLogged);

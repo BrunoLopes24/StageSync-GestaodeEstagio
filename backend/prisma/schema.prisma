@@ -8,20 +8,22 @@ datasource db {
 }
 
 model WorkLog {
-  id              String      @id @default(uuid())
-  date            DateTime    @unique @db.Date
-  type            WorkLogType @default(NORMAL)
-  startTime       String?     @map("start_time")
-  endTime         String?     @map("end_time")
-  lunchStart      String?     @map("lunch_start")
-  lunchEnd        String?     @map("lunch_end")
-  calculatedHours Float       @default(0) @map("calculated_hours")
-  company         String      @default("")
-  taskDescription String      @default("") @db.Text @map("task_description")
-  justification   String?     @db.Text
-  userId          String?     @map("user_id")
-  createdAt       DateTime    @default(now()) @map("created_at")
-  updatedAt       DateTime    @updatedAt @map("updated_at")
+  id              String        @id @default(uuid())
+  date            DateTime      @unique @db.Date
+  type            WorkLogType   @default(NORMAL)
+  startTime       String?       @map("start_time")
+  endTime         String?       @map("end_time")
+  lunchStart      String?       @map("lunch_start")
+  lunchEnd        String?       @map("lunch_end")
+  calculatedHours Float         @default(0) @map("calculated_hours")
+  company         String        @default("")
+  taskDescription String        @default("") @db.Text @map("task_description")
+  justification   String?       @db.Text
+  userId          String?       @map("user_id")
+  status          WorkLogStatus @default(PENDING) @map("status")
+  rejectionReason String?       @map("rejection_reason") @db.Text
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
 
   @@map("work_logs")
 }
@@ -73,6 +75,7 @@ model Institution {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   studentIdentities StudentIdentity[]
+  subscription      Subscription?
 
   @@map("institutions")
 }
@@ -144,4 +147,38 @@ enum WorkLogType {
   NORMAL
   HOLIDAY
   JUSTIFIED_ABSENCE
+}
+
+enum WorkLogStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ─── Subscription Models ────────────────────────────────
+
+enum SubscriptionPlan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+model Subscription {
+  id            String             @id @default(uuid())
+  institutionId String             @unique @map("institution_id")
+  plan          SubscriptionPlan   @default(FREE)
+  status        SubscriptionStatus @default(ACTIVE)
+  expiresAt     DateTime?          @map("expires_at")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id])
+
+  @@map("subscriptions")
 }

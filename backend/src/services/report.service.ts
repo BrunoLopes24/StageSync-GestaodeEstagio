@@ -205,10 +205,10 @@ function buildAttendanceSummary(logs: { date: Date; calculatedHours: number }[])
   };
 }
 
-export async function generateMidtermReportPdf() {
+export async function generateMidtermReportPdf(userId: string) {
   const settings = await getSettings();
   const logs = await prisma.workLog.findMany({
-    where: { type: 'NORMAL' },
+    where: { type: 'NORMAL', userId },
     orderBy: { date: 'asc' },
     select: { date: true, taskDescription: true, calculatedHours: true },
   });
@@ -249,7 +249,7 @@ export async function generateMidtermReportPdf() {
   return buildSimplePdf(lines);
 }
 
-export async function getWeeklySummary(dateStr: string): Promise<WeeklySummary> {
+export async function getWeeklySummary(dateStr: string, userId: string): Promise<WeeklySummary> {
   const date = new Date(dateStr);
   const { start, end } = getWeekRange(date);
 
@@ -257,6 +257,7 @@ export async function getWeeklySummary(dateStr: string): Promise<WeeklySummary> 
     where: {
       date: { gte: start, lte: end },
       type: 'NORMAL',
+      userId,
     },
     orderBy: { date: 'asc' },
   });
@@ -279,7 +280,7 @@ export async function getWeeklySummary(dateStr: string): Promise<WeeklySummary> 
   };
 }
 
-export async function getMonthlySummary(monthStr: string): Promise<MonthlySummary> {
+export async function getMonthlySummary(monthStr: string, userId: string): Promise<MonthlySummary> {
   const [yearStr, monthNumStr] = monthStr.split('-');
   const year = parseInt(yearStr, 10);
   const month = parseInt(monthNumStr, 10);
@@ -289,6 +290,7 @@ export async function getMonthlySummary(monthStr: string): Promise<MonthlySummar
     where: {
       date: { gte: start, lte: end },
       type: 'NORMAL',
+      userId,
     },
     orderBy: { date: 'asc' },
   });
