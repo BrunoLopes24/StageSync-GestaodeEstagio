@@ -8,7 +8,6 @@ import {
   Settings,
   Shield,
   Users,
-  ClipboardList,
   Monitor,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
@@ -23,7 +22,6 @@ const studentLinks = [
 const adminLinks = [
   { to: '/admin', label: 'Painel Admin', icon: Shield },
   { to: '/admin/students', label: 'Estudantes', icon: Users },
-  { to: '/admin/work-logs', label: 'Registos', icon: ClipboardList },
   { to: '/admin/sessions', label: 'Sessões', icon: Monitor },
 ];
 
