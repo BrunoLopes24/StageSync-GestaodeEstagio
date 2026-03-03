@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import * as argon2 from 'argon2';
 import { getPortugueseHolidays } from './utils/portuguese-holidays';
 
 const prisma = new PrismaClient();
@@ -53,8 +54,8 @@ async function main() {
   });
   console.log(`Seeded institution: ${institution.name}`);
 
-  // Seed StudentIdentity (do NOT create User — created on first login)
-  await prisma.studentIdentity.upsert({
+  // ─── Student 27767 ────────────────────────────────────────
+  const studentIdentity = await prisma.studentIdentity.upsert({
     where: {
       studentNumber_institutionId: {
         studentNumber: '27767',
@@ -75,6 +76,93 @@ async function main() {
   });
   console.log('Seeded student identity: 27767');
 
+  // Ensure student 27767 has STUDENT role (downgrade if previously ADMIN)
+  const existingStudent = await prisma.user.findUnique({
+    where: { studentIdentityId: studentIdentity.id },
+  });
+  if (existingStudent && existingStudent.role !== 'STUDENT') {
+    await prisma.user.update({
+      where: { id: existingStudent.id },
+      data: { role: 'STUDENT' },
+    });
+    console.log('Downgraded user 27767 role to STUDENT');
+  } else if (existingStudent) {
+    console.log('User 27767 already has STUDENT role');
+  } else {
+    console.log('User 27767 not yet created (will be STUDENT on first login)');
+  }
+
+  // ─── Admin Account ─────────────────────────────────────────
+  const adminIdentity = await prisma.studentIdentity.upsert({
+    where: {
+      studentNumber_institutionId: {
+        studentNumber: 'admin',
+        institutionId: institution.id,
+      },
+    },
+    update: {
+      institutionalEmail: 'admin@ipt.pt',
+      isActive: true,
+      needsPasswordSetup: false,
+    },
+    create: {
+      studentNumber: 'admin',
+      institutionalEmail: 'admin@ipt.pt',
+      isActive: true,
+      needsPasswordSetup: false,
+      institutionId: institution.id,
+    },
+  });
+  console.log('Seeded admin identity');
+
+  const adminPasswordHash = await argon2.hash('testeadmin');
+  await prisma.user.upsert({
+    where: { studentIdentityId: adminIdentity.id },
+    update: {
+      role: 'ADMIN',
+      passwordHash: adminPasswordHash,
+    },
+    create: {
+      passwordHash: adminPasswordHash,
+      role: 'ADMIN',
+      studentIdentityId: adminIdentity.id,
+    },
+  });
+  console.log('Seeded admin user (role: ADMIN)');
+
+  // Final guard: 27767 must never remain ADMIN after seed runs.
+  await prisma.user.updateMany({
+    where: {
+      studentIdentityId: studentIdentity.id,
+      role: 'ADMIN',
+    },
+    data: { role: 'STUDENT' },
+  });
+
+  // ─── Subscription ─────────────────────────────────────────
+  await prisma.subscription.upsert({
+    where: { institutionId: institution.id },
+    update: { plan: 'PRO' },
+    create: {
+      institutionId: institution.id,
+      plan: 'PRO',
+      status: 'ACTIVE',
+    },
+  });
+  console.log('Seeded subscription for institution');
+
+  // ─── Assign orphaned work logs to student 27767 ───────────
+  if (existingStudent) {
+    const { count } = await prisma.workLog.updateMany({
+      where: { userId: null },
+      data: { userId: existingStudent.id },
+    });
+    if (count > 0) {
+      console.log(`Assigned ${count} orphaned work logs to student 27767`);
+    }
+  }
+
+  // ─── Sample Work Logs ─────────────────────────────────────
   const existingLogCount = await prisma.workLog.count();
   if (existingLogCount > 0) {
     console.log(`Skipping sample work logs seed: found ${existingLogCount} existing records`);
@@ -82,7 +170,11 @@ async function main() {
     return;
   }
 
-  // Create sample work logs (last 4 weeks of data)
+  // Only create sample logs if student 27767 user exists
+  const studentUser = existingStudent || await prisma.user.findUnique({
+    where: { studentIdentityId: studentIdentity.id },
+  });
+
   const today = new Date();
   const sampleLogs: {
     date: Date;
@@ -94,6 +186,7 @@ async function main() {
     calculatedHours: number;
     company: string;
     taskDescription: string;
+    userId: string | null;
   }[] = [];
   const current = new Date(today);
   current.setDate(current.getDate() - 28);
@@ -106,22 +199,17 @@ async function main() {
     // Skip weekends
     if (dayOfWeek === 0 || dayOfWeek === 6) continue;
 
-    const startTime = '09:00';
-    const endTime = '17:30';
-    const lunchStart = '13:00';
-    const lunchEnd = '14:00';
-    const calculatedHours = 7.5;
-
     sampleLogs.push({
       date: day,
       type: 'NORMAL',
-      startTime,
-      endTime,
-      lunchStart,
-      lunchEnd,
-      calculatedHours,
+      startTime: '09:00',
+      endTime: '17:30',
+      lunchStart: '13:00',
+      lunchEnd: '14:00',
+      calculatedHours: 7.5,
       company: 'Empresa Exemplo',
       taskDescription: i % 5 === 0 ? 'Tarefas de desenvolvimento' : 'Atividades de estágio',
+      userId: studentUser?.id ?? null,
     });
   }
 
