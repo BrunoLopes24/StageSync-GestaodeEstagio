@@ -188,7 +188,9 @@ export async function getAggregatedDashboard(professorUserId: string) {
       return {
         studentId,
         studentNumber: user?.studentIdentity?.studentNumber ?? null,
-        email: user?.email ?? '',
+        email: (settings?.studentNumber === user?.studentIdentity?.studentNumber && settings?.studentEmail)
+          ? settings.studentEmail
+          : (user?.email ?? ''),
         name: settings?.studentNumber === user?.studentIdentity?.studentNumber
           ? (settings?.studentName ?? null)
           : null,

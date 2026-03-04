@@ -9,14 +9,15 @@ import { useSettings, useUpdateSettings } from '@/hooks/use-settings';
 import { Settings as SettingsIcon } from 'lucide-react';
 
 const schema = z.object({
-  totalRequiredHours: z.coerce.number().min(1),
-  dailyWorkHours: z.coerce.number().min(0.5).max(24),
-  startDate: z.string().min(1),
-  internshipTitle: z.string().optional(),
-  organizationName: z.string().optional(),
-  supervisorName: z.string().optional(),
-  studentName: z.string().optional(),
-  studentNumber: z.string().optional(),
+  totalRequiredHours: z.coerce.number().min(1, 'Campo obrigatório'),
+  dailyWorkHours: z.coerce.number().min(0.5, 'Campo obrigatório').max(24),
+  startDate: z.string().min(1, 'Campo obrigatório'),
+  internshipTitle: z.string().min(1, 'Campo obrigatório'),
+  organizationName: z.string().min(1, 'Campo obrigatório'),
+  supervisorName: z.string().min(1, 'Campo obrigatório'),
+  studentName: z.string().min(1, 'Campo obrigatório'),
+  studentNumber: z.string().min(1, 'Campo obrigatório'),
+  studentEmail: z.string().min(1, 'Campo obrigatório').email('Email inválido'),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -45,6 +46,7 @@ export function SettingsForm() {
         supervisorName: settings.supervisorName || '',
         studentName: settings.studentName || '',
         studentNumber: settings.studentNumber || '',
+        studentEmail: settings.studentEmail || '',
       });
     }
   }, [settings, reset]);
@@ -93,16 +95,25 @@ export function SettingsForm() {
             <div>
               <label className="mb-1 block text-sm font-medium">Título do Estágio</label>
               <Input {...register('internshipTitle')} placeholder="Ex: Estágio em Eng. Informática" />
+              {errors.internshipTitle && (
+                <p className="mt-1 text-xs text-destructive">{errors.internshipTitle.message}</p>
+              )}
             </div>
 
             <div>
               <label className="mb-1 block text-sm font-medium">Organização</label>
               <Input {...register('organizationName')} placeholder="Nome da empresa" />
+              {errors.organizationName && (
+                <p className="mt-1 text-xs text-destructive">{errors.organizationName.message}</p>
+              )}
             </div>
 
             <div>
               <label className="mb-1 block text-sm font-medium">Orientador</label>
               <Input {...register('supervisorName')} placeholder="Nome do orientador" />
+              {errors.supervisorName && (
+                <p className="mt-1 text-xs text-destructive">{errors.supervisorName.message}</p>
+              )}
             </div>
           </div>
 
@@ -112,11 +123,25 @@ export function SettingsForm() {
               <div>
                 <label className="mb-1 block text-sm font-medium">Nome do Estudante</label>
                 <Input {...register('studentName')} placeholder="Nome completo do estudante" />
+                {errors.studentName && (
+                  <p className="mt-1 text-xs text-destructive">{errors.studentName.message}</p>
+                )}
               </div>
 
               <div>
                 <label className="mb-1 block text-sm font-medium">Número do Estudante</label>
                 <Input {...register('studentNumber')} placeholder="Número mecanográfico" />
+                {errors.studentNumber && (
+                  <p className="mt-1 text-xs text-destructive">{errors.studentNumber.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium">Email</label>
+                <Input type="email" {...register('studentEmail')} placeholder="email@exemplo.com" />
+                {errors.studentEmail && (
+                  <p className="mt-1 text-xs text-destructive">{errors.studentEmail.message}</p>
+                )}
               </div>
             </div>
           </div>

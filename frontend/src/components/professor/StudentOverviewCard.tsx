@@ -4,7 +4,6 @@ import {
   Calendar,
   Activity,
   Timer,
-  BarChart3,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -117,15 +116,6 @@ export function StudentOverviewCard({ student, onViewLogs }: StudentOverviewCard
               {student.weeklyLogCount ?? 0} registo{(student.weeklyLogCount ?? 0) !== 1 ? 's' : ''}
             </p>
           </div>
-        </div>
-
-        {/* Average weekly hours */}
-        <div className="flex items-center justify-between rounded-md border p-2 text-sm">
-          <span className="flex items-center gap-1.5 text-muted-foreground">
-            <BarChart3 className="h-3.5 w-3.5" />
-            Média semanal
-          </span>
-          <span className="font-medium">{formatHours(student.averageWeeklyHours ?? 0)}</span>
         </div>
 
         {/* Recent activity */}
