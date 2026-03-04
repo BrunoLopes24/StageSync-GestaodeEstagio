@@ -1,6 +1,32 @@
 import { prisma } from '../lib/prisma';
 import { calculateDashboardStats, DashboardStats } from './time-engine.service';
 
+// ─── Internship Status ──────────────────────────────────
+
+type InternshipStatus = 'ON_TRACK' | 'SLIGHTLY_BEHIND' | 'AT_RISK' | 'COMPLETED' | 'NO_DATA';
+
+function computeInternshipStatus(stats: DashboardStats): InternshipStatus {
+  if (stats.percentComplete >= 100) return 'COMPLETED';
+
+  const start = new Date(stats.startDate);
+  const now = new Date();
+  const elapsed = now.getTime() - start.getTime();
+
+  if (!stats.predictedEndDate || elapsed <= 0) return 'NO_DATA';
+
+  const predictedEnd = new Date(stats.predictedEndDate);
+  const totalDuration = predictedEnd.getTime() - start.getTime();
+  const expectedPercent = totalDuration > 0
+    ? Math.min(100, (elapsed / totalDuration) * 100)
+    : stats.percentComplete;
+
+  const ratio = expectedPercent > 0 ? stats.percentComplete / expectedPercent : 1;
+
+  if (ratio >= 0.9) return 'ON_TRACK';
+  if (ratio >= 0.7) return 'SLIGHTLY_BEHIND';
+  return 'AT_RISK';
+}
+
 export {
   generateAccessCode,
   getActiveCodeStatus,
@@ -113,9 +139,12 @@ export async function getAggregatedDashboard(professorUserId: string) {
     };
   }
 
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
   const students = await Promise.all(
     studentIds.map(async (studentId) => {
-      const [stats, user] = await Promise.all([
+      const [stats, user, recentLogsRaw, weeklyLogCount] = await Promise.all([
         calculateDashboardStats(studentId),
         prisma.user.findUnique({
           where: { id: studentId },
@@ -125,7 +154,36 @@ export async function getAggregatedDashboard(professorUserId: string) {
             },
           },
         }),
+        prisma.workLog.findMany({
+          where: { userId: studentId },
+          orderBy: { date: 'desc' },
+          take: 3,
+          select: {
+            id: true,
+            date: true,
+            taskDescription: true,
+            calculatedHours: true,
+          },
+        }),
+        prisma.workLog.count({
+          where: { userId: studentId, date: { gte: oneWeekAgo } },
+        }),
       ]);
+
+      const recentLogs = recentLogsRaw.map((log) => ({
+        id: log.id,
+        date: log.date.toISOString(),
+        taskDescription: log.taskDescription,
+        calculatedHours: log.calculatedHours,
+      }));
+
+      const lastActivityDate = recentLogs.length > 0 ? recentLogs[0].date : null;
+
+      const now = new Date();
+      const start = new Date(stats.startDate);
+      const daysSinceStart = (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+      const weeksSinceStart = Math.max(1, daysSinceStart / 7);
+      const averageWeeklyHours = Math.round((stats.totalHoursLogged / weeksSinceStart) * 10) / 10;
 
       return {
         studentId,
@@ -135,9 +193,19 @@ export async function getAggregatedDashboard(professorUserId: string) {
           ? (settings?.studentName ?? null)
           : null,
         totalHoursLogged: stats.totalHoursLogged,
+        totalRequiredHours: stats.totalRequiredHours,
         percentComplete: stats.percentComplete,
+        remainingHours: stats.remainingHours,
+        remainingWorkDays: stats.remainingWorkDays,
         predictedEndDate: stats.predictedEndDate,
         avgHoursPerDay: stats.avgHoursPerDay,
+        daysWorked: stats.daysWorked,
+        startDate: stats.startDate,
+        recentLogs,
+        lastActivityDate,
+        weeklyLogCount,
+        internshipStatus: computeInternshipStatus(stats),
+        averageWeeklyHours,
       };
     }),
   );

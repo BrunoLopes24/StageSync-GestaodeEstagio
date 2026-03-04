@@ -54,14 +54,8 @@ export function LandingPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-center px-6">
           <Logo className="h-8 sm:h-9" />
-          <Link to="/login">
-            <Button>
-              Iniciar Sessão
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
         </div>
       </header>
 

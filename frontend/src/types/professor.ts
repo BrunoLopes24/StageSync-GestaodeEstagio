@@ -43,15 +43,32 @@ export interface StudentDashboardData {
   };
 }
 
+export interface RecentLogSummary {
+  id: string;
+  date: string;
+  taskDescription: string;
+  calculatedHours: number;
+}
+
 export interface AggregatedDashboardStudent {
   studentId: string;
   studentNumber: string | null;
   email: string;
   name?: string | null;
   totalHoursLogged: number;
+  totalRequiredHours: number;
   percentComplete: number;
+  remainingHours: number;
+  remainingWorkDays: number;
   predictedEndDate: string | null;
   avgHoursPerDay: number;
+  daysWorked: number;
+  startDate: string;
+  recentLogs: RecentLogSummary[];
+  lastActivityDate: string | null;
+  weeklyLogCount: number;
+  internshipStatus: 'ON_TRACK' | 'SLIGHTLY_BEHIND' | 'AT_RISK' | 'COMPLETED' | 'NO_DATA';
+  averageWeeklyHours: number;
 }
 
 export interface AggregatedDashboard {

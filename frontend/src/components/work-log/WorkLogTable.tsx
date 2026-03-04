@@ -39,7 +39,48 @@ export function WorkLogTable({ page, onPageChange }: WorkLogTableProps) {
 
   return (
     <>
-      <div className="overflow-x-auto rounded-md border">
+      <div className="space-y-3 md:hidden">
+        {data.data.map((log) => (
+          <div key={log.id} className="rounded-md border p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-medium">{formatDate(log.date)}</p>
+                <p className="text-sm text-muted-foreground">{formatRecordType(log.type)}</p>
+              </div>
+              <p className="shrink-0 text-sm font-medium text-primary">
+                {formatHours(log.calculatedHours)}
+              </p>
+            </div>
+
+            {log.taskDescription && (
+              <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">
+                {log.taskDescription}
+              </p>
+            )}
+
+            {log.company && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Empresa: {log.company}
+              </p>
+            )}
+
+            <div className="mt-2 flex justify-end gap-1">
+              <Button variant="ghost" size="icon" onClick={() => setEditLog(log)}>
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setDeleteId(log.id)}
+              >
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-md border md:block">
         <table className="w-full">
           <thead>
             <tr className="border-b bg-muted/50">

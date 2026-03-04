@@ -13,6 +13,9 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/src ./src
 COPY --from=builder /app/package.json ./
+COPY --from=builder /app/tsconfig.json ./
+RUN npm install --no-save tsx
 EXPOSE 3000
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/server.js"]
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && npx tsx prisma/seed.ts && node dist/server.js"]
