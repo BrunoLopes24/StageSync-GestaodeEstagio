@@ -22,6 +22,9 @@ services:
       NODE_ENV: development
       PORT: "3000"
       CORS_ORIGIN: http://localhost:5173
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      EMAIL_FROM: ${EMAIL_FROM}
+      APP_URL: ${APP_URL:-http://localhost:5173}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-stagesync-dev-access-secret-change-in-prod-min32chars}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-stagesync-dev-refresh-secret-change-in-prod-min32chars}
       ALLOW_FIRST_LOGIN_PASSWORD_SETUP: "true"

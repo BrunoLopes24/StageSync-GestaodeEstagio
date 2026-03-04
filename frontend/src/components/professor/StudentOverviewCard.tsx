@@ -25,17 +25,6 @@ function nameFromEmail(email: string): string {
     .join(' ');
 }
 
-const STATUS_MAP: Record<
-  AggregatedDashboardStudent['internshipStatus'],
-  { label: string; colorClass: string; dotClass: string }
-> = {
-  ON_TRACK: { label: 'No caminho certo', colorClass: 'text-success', dotClass: 'bg-green-500' },
-  SLIGHTLY_BEHIND: { label: 'Em risco', colorClass: 'text-destructive', dotClass: 'bg-red-500' },
-  AT_RISK: { label: 'Em risco', colorClass: 'text-destructive', dotClass: 'bg-red-500' },
-  COMPLETED: { label: 'Concluído', colorClass: 'text-success', dotClass: 'bg-green-500' },
-  NO_DATA: { label: 'Sem dados', colorClass: 'text-muted-foreground', dotClass: 'bg-gray-400' },
-};
-
 function truncate(text: string, maxLen = 60): string {
   return text.length > maxLen ? text.slice(0, maxLen) + '…' : text;
 }
@@ -47,8 +36,6 @@ export function StudentOverviewCard({ student, onViewLogs }: StudentOverviewCard
     nameFromEmail(student.email) ||
     student.studentNumber ||
     'Aluno';
-
-  const status = STATUS_MAP[student.internshipStatus] ?? STATUS_MAP.NO_DATA;
 
   return (
     <Card className="transition-shadow hover:shadow-md">

@@ -4,7 +4,7 @@ import { requireStudent } from '../middleware/require-student';
 import { requireProfessor } from '../middleware/require-professor';
 import { professorLoginRateLimiter } from '../middleware/rate-limiter';
 import { validate } from '../middleware/validate';
-import { professorLoginSchema } from '../schemas/professor.schema';
+import { professorInviteSchema, professorLoginSchema } from '../schemas/professor.schema';
 import { professorLoginHandler } from '../controllers/professor-auth.controller';
 import * as professorController from '../controllers/professor.controller';
 
@@ -20,7 +20,7 @@ router.post(
 
 // ─── Student: manage professor access code ──────────────
 router.get('/access-code', authMiddleware, requireStudent, professorController.getCodeStatus);
-router.post('/access-code', authMiddleware, requireStudent, professorController.generateCode);
+router.post('/access-code', authMiddleware, requireStudent, validate(professorInviteSchema), professorController.generateCode);
 router.delete('/access-code', authMiddleware, requireStudent, professorController.revokeCode);
 
 // ─── Student: manage supervision link ───────────────────

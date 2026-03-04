@@ -1,20 +1,17 @@
 export interface AccessCodeStatus {
   hasActiveCode: boolean;
-  code?: string | null;
   createdAt?: string;
   expiresAt?: string;
 }
 
-export interface AccessCodeResponse {
-  code: string;
-  expiresAt: string;
+export interface AccessCodeInviteResponse {
+  message: string;
 }
 
 export interface LinkedProfessor {
   professorId: string;
   professorEmail: string;
   linkedAt: string;
-  isActive: boolean;
 }
 
 export interface SupervisedStudent {

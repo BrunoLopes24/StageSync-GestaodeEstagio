@@ -8,7 +8,8 @@ import * as professorService from '../services/professor.service';
 
 export async function generateCode(req: Request, res: Response, next: NextFunction) {
   try {
-    const result = await professorService.generateAccessCode(req.userId!);
+    const { professorEmail } = req.body as { professorEmail: string };
+    const result = await professorService.generateAccessCode(req.userId!, professorEmail);
     res.status(201).json(result);
   } catch (err) {
     next(err);

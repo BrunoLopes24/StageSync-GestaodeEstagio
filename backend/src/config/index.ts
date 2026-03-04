@@ -7,6 +7,9 @@ export const config = {
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean),
+  appUrl: process.env.APP_URL || 'http://localhost:5173',
+  sendgridApiKey: process.env.SENDGRID_API_KEY || '',
+  emailFrom: process.env.EMAIL_FROM || '',
 
   // Authentication
   jwtAccessSecret: process.env.JWT_ACCESS_SECRET!,

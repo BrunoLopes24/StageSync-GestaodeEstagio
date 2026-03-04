@@ -5,6 +5,7 @@ import { prisma } from '../lib/prisma';
 import { config } from '../config';
 import { AppError } from '../middleware/error-handler';
 import { auditLog } from '../utils/audit-logger';
+import { sendProfessorInvitationEmail } from './email.service';
 
 // ─── Constants ──────────────────────────────────────────
 
@@ -26,6 +27,14 @@ function generateSecureCode(): string {
     code += SAFE_CHARSET[bytes[i] % SAFE_CHARSET.length];
   }
   return code;
+}
+
+function normalizeCodeInput(code: string): string {
+  return code.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
+function formatCodeForDelivery(code: string): string {
+  return code.match(/.{1,4}/g)?.join('-') ?? code;
 }
 
 function constantTimeCompare(a: string, b: string): boolean {
@@ -50,7 +59,12 @@ function parseExpiresIn(expiresIn: string): number {
 
 // ─── Student: Generate Invitation Code ──────────────────
 
-export async function generateAccessCode(studentUserId: string): Promise<{ code: string; expiresAt: Date }> {
+export async function generateAccessCode(
+  studentUserId: string,
+  professorEmail: string,
+): Promise<{ message: string }> {
+  const normalizedProfessorEmail = professorEmail.trim().toLowerCase();
+
   // Deactivate any existing active codes for this student
   await prisma.professorAccess.updateMany({
     where: { studentId: studentUserId, isActive: true },
@@ -58,47 +72,49 @@ export async function generateAccessCode(studentUserId: string): Promise<{ code:
   });
 
   const rawCode = generateSecureCode();
+  const deliveredCode = formatCodeForDelivery(rawCode);
   const codeHash = hashCode(rawCode);
   const expiresAt = new Date(Date.now() + CODE_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
 
-  await prisma.professorAccess.create({
+  const accessRecord = await prisma.professorAccess.create({
     data: {
       studentId: studentUserId,
-      codePlain: rawCode,
       codeHash,
       isActive: true,
       expiresAt,
     },
   });
 
-  auditLog('PROFESSOR_CODE_GENERATED', { userId: studentUserId });
+  try {
+    await sendProfessorInvitationEmail(normalizedProfessorEmail, deliveredCode);
+  } catch (error) {
+    await prisma.professorAccess.delete({
+      where: { id: accessRecord.id },
+    });
+    console.error('Failed to send professor invitation email:', error);
+    throw new AppError(500, 'Failed to send invitation email');
+  }
 
-  return { code: rawCode, expiresAt };
+  auditLog('PROFESSOR_CODE_GENERATED', {
+    userId: studentUserId,
+    targetId: normalizedProfessorEmail,
+  });
+
+  return { message: 'Convite enviado para o email do professor.' };
 }
 
 // ─── Student: Get Active Code Status ────────────────────
 
 export async function getActiveCodeStatus(studentUserId: string) {
   const record = await prisma.professorAccess.findFirst({
-    where: { studentId: studentUserId, isActive: true },
+    where: { studentId: studentUserId, isActive: true, usedAt: null },
     orderBy: { createdAt: 'desc' },
   });
 
   if (!record) return { hasActiveCode: false };
 
-  // Legacy active codes created before code_plain support cannot be displayed.
-  // Deactivate them and force generation of a new visible code.
-  if (!record.codePlain) {
-    await prisma.professorAccess.update({
-      where: { id: record.id },
-      data: { isActive: false },
-    });
-    return { hasActiveCode: false };
-  }
-
   return {
     hasActiveCode: true,
-    code: record.codePlain,
     expiresAt: record.expiresAt,
     createdAt: record.createdAt,
   };
@@ -158,7 +174,13 @@ export async function professorLogin(
   context: LoginContext,
 ): Promise<{ accessToken: string; refreshToken: string; professorId: string }> {
   const normalizedEmail = email.trim().toLowerCase();
-  const codeHash = hashCode(rawCode);
+  const normalizedCode = normalizeCodeInput(rawCode);
+
+  if (normalizedCode.length !== CODE_LENGTH) {
+    throw new AppError(401, 'Invalid access code');
+  }
+
+  const codeHash = hashCode(normalizedCode);
 
   const result = await prisma.$transaction(async (tx) => {
     // 1. Load the code and validate it is still active
@@ -182,6 +204,15 @@ export async function professorLogin(
         reason: 'inactive',
       });
       throw new AppError(401, 'Access code is no longer active');
+    }
+
+    if (access.usedAt) {
+      auditLog('PROFESSOR_CODE_REDEMPTION_FAILED', {
+        ip: context.ip,
+        userAgent: context.userAgent,
+        reason: 'used',
+      });
+      throw new AppError(401, 'Access code has already been used');
     }
 
     // 2. Validate expiration
@@ -230,6 +261,22 @@ export async function professorLogin(
         isActive: true,
       },
     });
+
+    const markAsUsedResult = await tx.professorAccess.updateMany({
+      where: {
+        id: access.id,
+        isActive: true,
+        usedAt: null,
+      },
+      data: {
+        usedAt: new Date(),
+        isActive: false,
+      },
+    });
+
+    if (markAsUsedResult.count === 0) {
+      throw new AppError(401, 'Access code is no longer active');
+    }
 
     auditLog('PROFESSOR_LINK_CREATED', {
       userId: professor.id,

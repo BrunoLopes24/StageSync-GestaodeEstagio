@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type {
   AccessCodeStatus,
-  AccessCodeResponse,
+  AccessCodeInviteResponse,
   LinkedProfessor,
   SupervisedStudent,
   StudentDashboardData,
@@ -20,8 +20,8 @@ export function useAccessCodeStatus() {
 
 export function useGenerateAccessCode() {
   const queryClient = useQueryClient();
-  return useMutation<AccessCodeResponse>({
-    mutationFn: () => api.post('/professor/access-code'),
+  return useMutation<AccessCodeInviteResponse, Error, string>({
+    mutationFn: (professorEmail: string) => api.post('/professor/access-code', { professorEmail }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['professor-access-code'] });
     },
