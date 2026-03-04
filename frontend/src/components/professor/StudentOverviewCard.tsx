@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import {
   Clock,
   TrendingUp,
@@ -32,7 +31,7 @@ const STATUS_MAP: Record<
   { label: string; colorClass: string; dotClass: string }
 > = {
   ON_TRACK: { label: 'No caminho certo', colorClass: 'text-success', dotClass: 'bg-green-500' },
-  SLIGHTLY_BEHIND: { label: 'Ligeiramente atrasado', colorClass: 'text-warning', dotClass: 'bg-yellow-500' },
+  SLIGHTLY_BEHIND: { label: 'Em risco', colorClass: 'text-destructive', dotClass: 'bg-red-500' },
   AT_RISK: { label: 'Em risco', colorClass: 'text-destructive', dotClass: 'bg-red-500' },
   COMPLETED: { label: 'Concluído', colorClass: 'text-success', dotClass: 'bg-green-500' },
   NO_DATA: { label: 'Sem dados', colorClass: 'text-muted-foreground', dotClass: 'bg-gray-400' },
@@ -43,7 +42,6 @@ function truncate(text: string, maxLen = 60): string {
 }
 
 export function StudentOverviewCard({ student, onViewLogs }: StudentOverviewCardProps) {
-  const navigate = useNavigate();
 
   const displayName =
     student.name?.trim() ||
@@ -56,15 +54,9 @@ export function StudentOverviewCard({ student, onViewLogs }: StudentOverviewCard
   return (
     <Card className="transition-shadow hover:shadow-md">
       <CardHeader className="pb-2">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <CardTitle className="text-base">{displayName}</CardTitle>
-            <p className="text-xs text-muted-foreground">{student.email}</p>
-          </div>
-          <span className={`flex shrink-0 items-center gap-1.5 text-xs font-medium ${status.colorClass}`}>
-            <span className={`inline-block h-2 w-2 rounded-full ${status.dotClass}`} />
-            {status.label}
-          </span>
+        <div className="min-w-0">
+          <CardTitle className="text-base">{displayName}</CardTitle>
+          <p className="text-xs text-muted-foreground">{student.email}</p>
         </div>
       </CardHeader>
 
@@ -160,13 +152,6 @@ export function StudentOverviewCard({ student, onViewLogs }: StudentOverviewCard
                 </div>
               ))}
             </div>
-            <button
-              type="button"
-              className="mt-1.5 text-xs text-primary hover:underline"
-              onClick={() => navigate(`/professor/work-logs/${student.studentId}`)}
-            >
-              Ver todos os registos
-            </button>
           </div>
         )}
 
