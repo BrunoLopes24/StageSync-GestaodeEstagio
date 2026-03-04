@@ -3,32 +3,16 @@ import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/error-handler';
 
 type Feature =
-  | 'view_students'
-  | 'view_logs'
-  | 'approve_logs'
   | 'export_reports'
-  | 'session_management'
-  | 'multi_admin'
   | 'advanced_analytics'
   | 'bulk_export'
   | 'api_access';
 
 const PLAN_FEATURES: Record<string, Feature[]> = {
-  FREE: ['view_students', 'view_logs'],
-  PRO: [
-    'view_students',
-    'view_logs',
-    'approve_logs',
-    'export_reports',
-    'session_management',
-  ],
+  FREE: [],
+  PRO: ['export_reports'],
   ENTERPRISE: [
-    'view_students',
-    'view_logs',
-    'approve_logs',
     'export_reports',
-    'session_management',
-    'multi_admin',
     'advanced_analytics',
     'bulk_export',
     'api_access',
@@ -49,7 +33,7 @@ export async function hasFeature(userId: string, feature: Feature): Promise<bool
     },
   });
 
-  if (!user) return false;
+  if (!user || !user.studentIdentity) return false;
 
   const subscription = user.studentIdentity.institution.subscription;
   const plan = subscription?.status === 'ACTIVE' ? subscription.plan : 'FREE';

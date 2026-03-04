@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client';
-import * as argon2 from 'argon2';
 import { getPortugueseHolidays } from './utils/portuguese-holidays';
 
 const prisma = new PrismaClient();
@@ -92,52 +91,7 @@ async function main() {
     console.log('User 27767 not yet created (will be STUDENT on first login)');
   }
 
-  // ─── Admin Account ─────────────────────────────────────────
-  const adminIdentity = await prisma.studentIdentity.upsert({
-    where: {
-      studentNumber_institutionId: {
-        studentNumber: 'admin',
-        institutionId: institution.id,
-      },
-    },
-    update: {
-      institutionalEmail: 'admin@ipt.pt',
-      isActive: true,
-      needsPasswordSetup: false,
-    },
-    create: {
-      studentNumber: 'admin',
-      institutionalEmail: 'admin@ipt.pt',
-      isActive: true,
-      needsPasswordSetup: false,
-      institutionId: institution.id,
-    },
-  });
-  console.log('Seeded admin identity');
-
-  const adminPasswordHash = await argon2.hash('testeadmin');
-  await prisma.user.upsert({
-    where: { studentIdentityId: adminIdentity.id },
-    update: {
-      role: 'ADMIN',
-      passwordHash: adminPasswordHash,
-    },
-    create: {
-      passwordHash: adminPasswordHash,
-      role: 'ADMIN',
-      studentIdentityId: adminIdentity.id,
-    },
-  });
-  console.log('Seeded admin user (role: ADMIN)');
-
-  // Final guard: 27767 must never remain ADMIN after seed runs.
-  await prisma.user.updateMany({
-    where: {
-      studentIdentityId: studentIdentity.id,
-      role: 'ADMIN',
-    },
-    data: { role: 'STUDENT' },
-  });
+  // Admin role has been removed. Professor supervision model is now active.
 
   // ─── Subscription ─────────────────────────────────────────
   await prisma.subscription.upsert({

@@ -6,11 +6,9 @@ import {
   Clock,
   BarChart3,
   Settings,
-  Shield,
-  Users,
-  Monitor,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import { SidebarAccessCode } from '@/components/settings/SidebarAccessCode';
 
 const studentLinks = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -19,10 +17,8 @@ const studentLinks = [
   { to: '/settings', label: 'Definições', icon: Settings },
 ];
 
-const adminLinks = [
-  { to: '/admin', label: 'Painel Admin', icon: Shield },
-  { to: '/admin/students', label: 'Estudantes', icon: Users },
-  { to: '/admin/sessions', label: 'Sessões', icon: Monitor },
+const professorLinks = [
+  { to: '/professor', label: 'Dashboard', icon: LayoutDashboard },
 ];
 
 interface SidebarProps {
@@ -34,7 +30,7 @@ function NavItem({ link, onClose }: { link: typeof studentLinks[0]; onClose: () 
   return (
     <NavLink
       to={link.to}
-      end={link.to === '/admin'}
+      end
       onClick={onClose}
       className={({ isActive }) =>
         cn(
@@ -53,7 +49,7 @@ function NavItem({ link, onClose }: { link: typeof studentLinks[0]; onClose: () 
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN';
+  const isProfessor = user?.role === 'PROFESSOR';
 
   return (
     <>
@@ -71,21 +67,27 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto p-4">
-          {!isAdmin && studentLinks.map((link) => (
+          {!isProfessor && studentLinks.map((link) => (
             <NavItem key={link.to} link={link} onClose={onClose} />
           ))}
 
-          {isAdmin && (
+          {isProfessor && (
             <>
               <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Administração
+                Supervisão
               </p>
-              {adminLinks.map((link) => (
+              {professorLinks.map((link) => (
                 <NavItem key={link.to} link={link} onClose={onClose} />
               ))}
             </>
           )}
         </nav>
+
+        {!isProfessor && (
+          <div className="border-t p-4">
+            <SidebarAccessCode />
+          </div>
+        )}
 
         <div className="border-t p-4">
           <p className="text-xs text-muted-foreground">Gestão de Estágio</p>

@@ -1,9 +1,16 @@
-export interface AuthUser {
+export interface StudentUser {
   id: string;
-  role: 'STUDENT' | 'ADMIN';
+  role: 'STUDENT';
   studentNumber: string;
   email: string;
 }
+
+export interface ProfessorUser {
+  id: string;
+  role: 'PROFESSOR';
+}
+
+export type AuthUser = StudentUser | ProfessorUser;
 
 export interface LoginResponse {
   accessToken: string;
@@ -11,6 +18,12 @@ export interface LoginResponse {
   expiresIn: string;
   isNewAccount: boolean;
   user: AuthUser;
+}
+
+export interface ProfessorLoginResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: { id: string; role: 'PROFESSOR' };
 }
 
 export interface RefreshResponse {

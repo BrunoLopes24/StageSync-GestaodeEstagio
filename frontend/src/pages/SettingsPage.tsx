@@ -1,5 +1,6 @@
 import { SettingsForm } from '@/components/settings/SettingsForm';
 import { HolidayManager } from '@/components/settings/HolidayManager';
+import { ProfessorAccessCard } from '@/components/settings/ProfessorAccessCard';
 
 export function SettingsPage() {
   return (
@@ -15,6 +16,8 @@ export function SettingsPage() {
         <SettingsForm />
         <HolidayManager />
       </div>
+
+      <ProfessorAccessCard />
     </div>
   );
 }

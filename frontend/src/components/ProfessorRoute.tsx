@@ -1,10 +1,10 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
-export function AdminRoute() {
+export function ProfessorRoute() {
   const { user } = useAuth();
 
-  if (user?.role !== 'ADMIN') {
+  if (user?.role !== 'PROFESSOR') {
     return <Navigate to="/dashboard" replace />;
   }
 

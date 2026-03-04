@@ -5,7 +5,7 @@ export function StudentRoute() {
   const { user } = useAuth();
 
   if (user?.role !== 'STUDENT') {
-    return <Navigate to="/admin" replace />;
+    return <Navigate to="/professor" replace />;
   }
 
   return <Outlet />;

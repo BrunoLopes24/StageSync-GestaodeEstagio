@@ -18,9 +18,12 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   });
   const navigate = useNavigate();
 
-  const displayName = isStudent
-    ? (settings?.studentName || user?.studentNumber || user?.email || '')
-    : (user?.studentNumber || user?.email || '');
+  let displayName = '';
+  if (isStudent && user.role === 'STUDENT') {
+    displayName = settings?.studentName || user.studentNumber || user.email || '';
+  } else if (user?.role === 'PROFESSOR') {
+    displayName = 'Professor';
+  }
 
   async function handleLogout() {
     await logout();
