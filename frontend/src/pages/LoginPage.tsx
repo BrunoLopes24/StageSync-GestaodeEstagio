@@ -164,6 +164,10 @@ export function LoginPage() {
               </form>
             ) : (
               <form onSubmit={professorForm.handleSubmit(onProfessorSubmit)} className="space-y-4">
+                <div className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning">
+                  O código de acesso é de uso único. Após terminar sessão, terá de pedir um novo código ao estudante.
+                </div>
+
                 <div className="space-y-2">
                   <label htmlFor="prof-email" className="text-sm font-medium">
                     Email
