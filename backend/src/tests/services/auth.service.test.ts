@@ -105,7 +105,7 @@ describe('auth.service', () => {
 
   it('rejects first-login password setup when feature is disabled', async () => {
     config.allowFirstLoginPasswordSetup = false;
-    await expect(handlePasswordSetup('identity-1', 'pass123')).rejects.toMatchObject<AppError>({
+    await expect(handlePasswordSetup('identity-1', 'pass123')).rejects.toMatchObject({
       statusCode: 403,
     });
   });
@@ -115,7 +115,7 @@ describe('auth.service', () => {
       id: 'identity-1',
       needsPasswordSetup: false,
     } as any);
-    await expect(handlePasswordSetup('identity-1', 'pass123')).rejects.toMatchObject<AppError>({
+    await expect(handlePasswordSetup('identity-1', 'pass123')).rejects.toMatchObject({
       statusCode: 401,
       message: 'Invalid credentials',
     });
@@ -199,7 +199,7 @@ describe('auth.service', () => {
     } as any);
     (argon2.verify as jest.Mock).mockResolvedValue(false);
 
-    await expect(login('student@school.pt', 'wrong', context)).rejects.toMatchObject<AppError>({
+    await expect(login('student@school.pt', 'wrong', context)).rejects.toMatchObject({
       statusCode: 401,
       message: 'Invalid credentials',
     });
@@ -212,7 +212,7 @@ describe('auth.service', () => {
       isActive: false,
       institution: { domain: 'school.pt', isActive: true },
     } as any);
-    await expect(login('student@school.pt', 'pass', context)).rejects.toMatchObject<AppError>({
+    await expect(login('student@school.pt', 'pass', context)).rejects.toMatchObject({
       statusCode: 401,
     });
 
@@ -222,7 +222,7 @@ describe('auth.service', () => {
       isActive: true,
       institution: { domain: 'school.pt', isActive: false },
     } as any);
-    await expect(login('student@school.pt', 'pass', context)).rejects.toMatchObject<AppError>({
+    await expect(login('student@school.pt', 'pass', context)).rejects.toMatchObject({
       statusCode: 401,
     });
   });
@@ -274,7 +274,7 @@ describe('auth.service', () => {
 
   it('throws when refresh token is invalid or expired', async () => {
     prismaMock.session.findFirst.mockResolvedValue(null);
-    await expect(refreshTokens('refresh-token-value', context)).rejects.toMatchObject<AppError>({
+    await expect(refreshTokens('refresh-token-value', context)).rejects.toMatchObject({
       statusCode: 401,
       message: 'Invalid refresh token',
     });
@@ -285,7 +285,7 @@ describe('auth.service', () => {
       user: { id: 'student-1', role: 'STUDENT', studentIdentity: createMockStudent().studentIdentity },
     } as any);
     prismaMock.session.delete.mockResolvedValue({ id: 'session-1' } as any);
-    await expect(refreshTokens('refresh-token-value', context)).rejects.toMatchObject<AppError>({
+    await expect(refreshTokens('refresh-token-value', context)).rejects.toMatchObject({
       statusCode: 401,
       message: 'Refresh token expired',
     });
@@ -322,7 +322,7 @@ describe('auth.service', () => {
     } as any);
     prismaMock.session.deleteMany.mockResolvedValue({ count: 1 } as any);
 
-    await expect(refreshTokens('refresh-token', context)).rejects.toMatchObject<AppError>({
+    await expect(refreshTokens('refresh-token', context)).rejects.toMatchObject({
       statusCode: 401,
       message: 'Unknown role',
     });

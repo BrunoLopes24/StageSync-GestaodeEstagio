@@ -94,7 +94,7 @@ describe('professor-access.service', () => {
 
     prismaMock.$transaction.mockImplementation(async (cb: any) => cb(tx));
 
-    await expect(professorLogin('prof@school.pt', rawCode, context)).rejects.toMatchObject<AppError>({
+    await expect(professorLogin('prof@school.pt', rawCode, context)).rejects.toMatchObject({
       statusCode: 401,
       message: 'Access code has expired',
     });
@@ -116,7 +116,7 @@ describe('professor-access.service', () => {
 
     prismaMock.$transaction.mockImplementation(async (cb: any) => cb(tx));
 
-    await expect(professorLogin('prof@school.pt', rawCode, context)).rejects.toMatchObject<AppError>({
+    await expect(professorLogin('prof@school.pt', rawCode, context)).rejects.toMatchObject({
       statusCode: 401,
       message: 'Access code has already been used',
     });

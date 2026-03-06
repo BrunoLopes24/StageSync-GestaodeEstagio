@@ -18,7 +18,7 @@ describe('work-log CSV utilities', () => {
   });
 
   it('rejects empty CSV import', async () => {
-    await expect(importWorkLogsCsv('', 'student-1')).rejects.toMatchObject<AppError>({
+    await expect(importWorkLogsCsv('', 'student-1')).rejects.toMatchObject({
       statusCode: 400,
       message: 'CSV file is empty or has no data rows',
     });

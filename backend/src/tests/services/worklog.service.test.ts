@@ -107,7 +107,7 @@ describe('work-log.service', () => {
         },
         'student-1',
       ),
-    ).rejects.toMatchObject<AppError>({ statusCode: 400 });
+    ).rejects.toMatchObject({ statusCode: 400 });
   });
 
   it('updates a work log and supports absence type', async () => {
@@ -150,7 +150,7 @@ describe('work-log.service', () => {
 
   it('throws when updating non-existing log', async () => {
     prismaMock.workLog.findFirst.mockResolvedValue(null);
-    await expect(updateWorkLog('missing', { taskDescription: 'x' }, 'student-1')).rejects.toMatchObject<AppError>({
+    await expect(updateWorkLog('missing', { taskDescription: 'x' }, 'student-1')).rejects.toMatchObject({
       statusCode: 404,
       message: 'Work log not found',
     });
@@ -159,7 +159,7 @@ describe('work-log.service', () => {
   it('throws when deleting non-existing log', async () => {
     prismaMock.workLog.findFirst.mockResolvedValue(null);
 
-    await expect(deleteWorkLog('missing', 'student-1')).rejects.toMatchObject<AppError>({
+    await expect(deleteWorkLog('missing', 'student-1')).rejects.toMatchObject({
       statusCode: 404,
       message: 'Work log not found',
     });
@@ -234,7 +234,7 @@ describe('work-log.service', () => {
   });
 
   it('throws when CSV is empty', async () => {
-    await expect(importWorkLogsCsv('', 'student-1')).rejects.toMatchObject<AppError>({
+    await expect(importWorkLogsCsv('', 'student-1')).rejects.toMatchObject({
       statusCode: 400,
       message: 'CSV file is empty or has no data rows',
     });

@@ -4,6 +4,11 @@ import { calculateDashboardStats, DashboardStats } from './time-engine.service';
 // ─── Internship Status ──────────────────────────────────
 
 type InternshipStatus = 'ON_TRACK' | 'SLIGHTLY_BEHIND' | 'AT_RISK' | 'COMPLETED' | 'NO_DATA';
+type StudentProfileSettings = {
+  studentNumber?: string | null;
+  studentName?: string | null;
+  studentEmail?: string | null;
+};
 
 function computeInternshipStatus(stats: DashboardStats): InternshipStatus {
   if (stats.percentComplete >= 100) return 'COMPLETED';
@@ -124,6 +129,7 @@ export async function getStudentWorkLogs(
 
 export async function getAggregatedDashboard(professorUserId: string) {
   const settings = await prisma.settings.findUnique({ where: { id: 'default' } });
+  const sharedStudentProfile = (settings ?? {}) as StudentProfileSettings;
 
   const links = await prisma.professorStudentLink.findMany({
     where: { professorId: professorUserId, isActive: true },
@@ -188,11 +194,12 @@ export async function getAggregatedDashboard(professorUserId: string) {
       return {
         studentId,
         studentNumber: user?.studentIdentity?.studentNumber ?? null,
-        email: (settings?.studentNumber === user?.studentIdentity?.studentNumber && settings?.studentEmail)
-          ? settings.studentEmail
+        email: (sharedStudentProfile.studentNumber === user?.studentIdentity?.studentNumber
+          && sharedStudentProfile.studentEmail)
+          ? sharedStudentProfile.studentEmail
           : (user?.email ?? ''),
-        name: settings?.studentNumber === user?.studentIdentity?.studentNumber
-          ? (settings?.studentName ?? null)
+        name: sharedStudentProfile.studentNumber === user?.studentIdentity?.studentNumber
+          ? (sharedStudentProfile.studentName ?? null)
           : null,
         totalHoursLogged: stats.totalHoursLogged,
         totalRequiredHours: stats.totalRequiredHours,
