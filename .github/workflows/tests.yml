@@ -1,0 +1,43 @@
+name: Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm install
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Run backend tests
+        working-directory: backend
+        env:
+          JWT_ACCESS_SECRET: 12345678901234567890123456789012
+          JWT_REFRESH_SECRET: abcdefghijklmnopqrstuvwxyz123456
+        run: npm test -- --runInBand
+
+      - name: Run frontend tests
+        working-directory: frontend
+        run: npm test
