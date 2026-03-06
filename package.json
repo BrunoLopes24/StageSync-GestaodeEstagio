@@ -1,0 +1,8 @@
+{
+  "name": "stagesync-tests",
+  "private": true,
+  "scripts": {
+    "test": "npm --prefix backend run test && npm --prefix frontend run test",
+    "test:coverage": "npm --prefix backend run test:coverage && npm --prefix frontend run test:coverage"
+  }
+}

@@ -3,7 +3,7 @@ import { useNavigate, Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { LogIn, Loader2, ArrowLeft } from 'lucide-react';
+import { LogIn, Loader2, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<LoginTab>('student');
+  const [showPassword, setShowPassword] = useState(false);
 
   const studentForm = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
@@ -115,7 +116,7 @@ export function LoginPage() {
             </div>
 
             {activeTab === 'student' ? (
-              <form onSubmit={studentForm.handleSubmit(onStudentSubmit)} className="space-y-4">
+              <form key="student" onSubmit={studentForm.handleSubmit(onStudentSubmit)} className="space-y-4">
                 <div className="space-y-2">
                   <label htmlFor="identifier" className="text-sm font-medium">
                     Identificador
@@ -132,12 +133,23 @@ export function LoginPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="password" className="text-sm font-medium">
-                    Palavra-passe
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="password" className="text-sm font-medium">
+                      Palavra-passe
+                    </label>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 text-xs text-primary/70 hover:text-primary"
+                      onClick={() => setShowPassword(!showPassword)}
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                      {showPassword ? 'Ocultar' : 'Mostrar'}
+                    </button>
+                  </div>
                   <Input
                     id="password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
                     autoComplete="current-password"
                     {...studentForm.register('password')}
@@ -163,7 +175,7 @@ export function LoginPage() {
                 </Button>
               </form>
             ) : (
-              <form onSubmit={professorForm.handleSubmit(onProfessorSubmit)} className="space-y-4">
+              <form key="professor" onSubmit={professorForm.handleSubmit(onProfessorSubmit)} className="space-y-4" autoComplete="off">
                 <div className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning">
                   O código de acesso é de uso único. Após terminar sessão, terá de pedir um novo código ao estudante.
                 </div>
