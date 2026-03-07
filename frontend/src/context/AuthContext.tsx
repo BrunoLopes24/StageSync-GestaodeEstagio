@@ -37,7 +37,7 @@ function decodeUserFromToken(accessToken: string): AuthUser {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !!getRefreshToken());
 
   const refreshAuth = useCallback(async () => {
     try {
@@ -73,12 +73,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Silent refresh on mount if refresh token exists
   useEffect(() => {
-    const token = getRefreshToken();
-    if (token) {
-      refreshAuth().finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    if (!getRefreshToken()) return;
+    refreshAuth().finally(() => setLoading(false));
   }, [refreshAuth]);
 
   return (
@@ -98,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
   if (!context) {

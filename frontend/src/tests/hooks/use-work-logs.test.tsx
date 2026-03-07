@@ -46,7 +46,7 @@ describe('use-work-logs and use-dashboard hooks', () => {
   });
 
   it('fetches work logs with query params', async () => {
-    vi.mocked(api.get).mockResolvedValueOnce({ data: [], total: 0, page: 2, limit: 10, totalPages: 0 } as any);
+    vi.mocked(api.get).mockResolvedValueOnce({ data: [], total: 0, page: 2, limit: 10, totalPages: 0 } as never);
 
     const { wrapper } = createWrapper();
     const { result } = renderHook(
@@ -69,7 +69,7 @@ describe('use-work-logs and use-dashboard hooks', () => {
   });
 
   it('fetches dashboard stats', async () => {
-    vi.mocked(api.get).mockResolvedValueOnce({ percentComplete: 30 } as any);
+    vi.mocked(api.get).mockResolvedValueOnce({ percentComplete: 30 } as never);
 
     const { wrapper } = createWrapper();
     const { result } = renderHook(() => useDashboard(), { wrapper });
@@ -80,7 +80,7 @@ describe('use-work-logs and use-dashboard hooks', () => {
   });
 
   it('create mutation posts data and invalidates related queries', async () => {
-    vi.mocked(api.post).mockResolvedValueOnce({ id: 'log-1' } as any);
+    vi.mocked(api.post).mockResolvedValueOnce({ id: 'log-1' } as never);
     const { wrapper, qc } = createWrapper();
     const invalidateSpy = vi.spyOn(qc, 'invalidateQueries');
 
@@ -101,8 +101,8 @@ describe('use-work-logs and use-dashboard hooks', () => {
   });
 
   it('update and delete mutations call API endpoints', async () => {
-    vi.mocked(api.put).mockResolvedValueOnce({ id: 'log-1' } as any);
-    vi.mocked(api.delete).mockResolvedValueOnce(undefined as any);
+    vi.mocked(api.put).mockResolvedValueOnce({ id: 'log-1' } as never);
+    vi.mocked(api.delete).mockResolvedValueOnce(undefined as never);
 
     const { wrapper } = createWrapper();
     const update = renderHook(() => useUpdateWorkLog(), { wrapper });

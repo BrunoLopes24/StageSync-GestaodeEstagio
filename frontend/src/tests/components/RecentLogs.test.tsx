@@ -12,7 +12,7 @@ describe('RecentLogs', () => {
   const mockedUseWorkLogs = vi.mocked(useWorkLogs);
 
   it('shows empty state', () => {
-    mockedUseWorkLogs.mockReturnValue({ data: { data: [] } } as any);
+    mockedUseWorkLogs.mockReturnValue({ data: { data: [] } } as never);
 
     render(
       <MemoryRouter>
@@ -35,7 +35,7 @@ describe('RecentLogs', () => {
           },
         ],
       },
-    } as any);
+    } as never);
 
     render(
       <MemoryRouter>

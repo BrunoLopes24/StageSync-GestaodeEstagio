@@ -31,7 +31,7 @@ describe('use-settings and use-holidays hooks', () => {
   });
 
   it('fetches settings when enabled and skips when disabled', async () => {
-    vi.mocked(api.get).mockResolvedValueOnce({ organizationName: 'StageSync' } as any);
+    vi.mocked(api.get).mockResolvedValueOnce({ organizationName: 'StageSync' } as never);
 
     const enabled = createWrapper();
     const resultEnabled = renderHook(() => useSettings({ enabled: true, userId: 'u1' }), { wrapper: enabled.wrapper });
@@ -45,7 +45,7 @@ describe('use-settings and use-holidays hooks', () => {
   });
 
   it('updates settings and invalidates caches', async () => {
-    vi.mocked(api.put).mockResolvedValueOnce({ organizationName: 'StageSync' } as any);
+    vi.mocked(api.put).mockResolvedValueOnce({ organizationName: 'StageSync' } as never);
     const { wrapper, qc } = createWrapper();
     const invalidateSpy = vi.spyOn(qc, 'invalidateQueries');
 
@@ -60,9 +60,9 @@ describe('use-settings and use-holidays hooks', () => {
   });
 
   it('fetches holidays and runs holiday mutations', async () => {
-    vi.mocked(api.get).mockResolvedValue([] as any);
-    vi.mocked(api.post).mockResolvedValueOnce([] as any);
-    vi.mocked(api.delete).mockResolvedValueOnce(undefined as any);
+    vi.mocked(api.get).mockResolvedValue([] as never);
+    vi.mocked(api.post).mockResolvedValueOnce([] as never);
+    vi.mocked(api.delete).mockResolvedValueOnce(undefined as never);
 
     const { wrapper, qc } = createWrapper();
     const invalidateSpy = vi.spyOn(qc, 'invalidateQueries');

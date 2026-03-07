@@ -118,7 +118,7 @@ export function ProfessorWorkLogsPage() {
 
   const isLoading = dashLoading || logsLoading;
 
-  const allLogs = (logsData?.logs ?? []) as WorkLogEntry[];
+  const allLogs = useMemo(() => (logsData?.logs ?? []) as WorkLogEntry[], [logsData?.logs]);
 
   const filteredLogs = useMemo(() => {
     if (filter === 'all') return allLogs;

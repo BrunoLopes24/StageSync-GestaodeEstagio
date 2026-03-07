@@ -39,7 +39,7 @@ describe('use-professor hooks', () => {
   });
 
   it('fetches aggregated dashboard', async () => {
-    vi.mocked(api.get).mockResolvedValue({ totalStudents: 1, students: [{ studentId: 's1' }] } as any);
+    vi.mocked(api.get).mockResolvedValue({ totalStudents: 1, students: [{ studentId: 's1' }] } as never);
 
     const { wrapper } = createWrapper();
     const { result } = renderHook(() => useAggregatedDashboard(), { wrapper });
@@ -66,7 +66,7 @@ describe('use-professor hooks', () => {
   });
 
   it('loads access code status', async () => {
-    vi.mocked(api.get).mockResolvedValueOnce({ hasActiveCode: true } as any);
+    vi.mocked(api.get).mockResolvedValueOnce({ hasActiveCode: true } as never);
     const { wrapper } = createWrapper();
     const { result } = renderHook(() => useAccessCodeStatus(), { wrapper });
 
@@ -75,7 +75,7 @@ describe('use-professor hooks', () => {
   });
 
   it('generates access code and invalidates cache', async () => {
-    vi.mocked(api.post).mockResolvedValueOnce({ message: 'ok' } as any);
+    vi.mocked(api.post).mockResolvedValueOnce({ message: 'ok' } as never);
     const { wrapper, qc } = createWrapper();
     const invalidateSpy = vi.spyOn(qc, 'invalidateQueries');
     const { result } = renderHook(() => useGenerateAccessCode(), { wrapper });
@@ -94,7 +94,7 @@ describe('use-professor hooks', () => {
   });
 
   it('loads linked professor data', async () => {
-    vi.mocked(api.get).mockResolvedValueOnce({ professorId: 'p1' } as any);
+    vi.mocked(api.get).mockResolvedValueOnce({ professorId: 'p1' } as never);
     const { wrapper } = createWrapper();
     const { result } = renderHook(() => useLinkedProfessor(), { wrapper });
 
@@ -103,7 +103,7 @@ describe('use-professor hooks', () => {
   });
 
   it('revoke mutations call API and invalidate relevant cache', async () => {
-    vi.mocked(api.delete).mockResolvedValue(undefined as any);
+    vi.mocked(api.delete).mockResolvedValue(undefined as never);
     const { wrapper, qc } = createWrapper();
     const invalidateSpy = vi.spyOn(qc, 'invalidateQueries');
 

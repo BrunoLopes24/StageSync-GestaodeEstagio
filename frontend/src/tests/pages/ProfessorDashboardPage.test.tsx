@@ -22,7 +22,7 @@ describe('ProfessorDashboardPage', () => {
   const mockedUseAggregatedDashboard = vi.mocked(useAggregatedDashboard);
 
   it('shows loader state', () => {
-    mockedUseAggregatedDashboard.mockReturnValue({ isLoading: true, error: null, data: null } as any);
+    mockedUseAggregatedDashboard.mockReturnValue({ isLoading: true, error: null, data: null } as never);
 
     const { container } = render(
       <MemoryRouter>
@@ -34,7 +34,7 @@ describe('ProfessorDashboardPage', () => {
   });
 
   it('renders empty state', () => {
-    mockedUseAggregatedDashboard.mockReturnValue({ isLoading: false, error: null, data: { students: [] } } as any);
+    mockedUseAggregatedDashboard.mockReturnValue({ isLoading: false, error: null, data: { students: [] } } as never);
 
     render(
       <MemoryRouter>
@@ -50,7 +50,7 @@ describe('ProfessorDashboardPage', () => {
       isLoading: false,
       error: null,
       data: { students: [createMockStudent()] },
-    } as any);
+    } as never);
 
     render(
       <MemoryRouter>

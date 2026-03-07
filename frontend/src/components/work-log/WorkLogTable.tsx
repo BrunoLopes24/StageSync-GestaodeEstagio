@@ -49,11 +49,12 @@ export function WorkLogTable({ data, isLoading, page, onPageChange, typeFilter =
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
 
+  const items = data?.data;
   const filteredData = useMemo(() => {
-    if (!data?.data) return [];
-    if (typeFilter === 'ALL') return data.data;
-    return data.data.filter((log) => log.type === typeFilter);
-  }, [data?.data, typeFilter]);
+    if (!items) return [];
+    if (typeFilter === 'ALL') return items;
+    return items.filter((log) => log.type === typeFilter);
+  }, [items, typeFilter]);
 
   const handleDelete = useCallback(async () => {
     if (deleteId) {

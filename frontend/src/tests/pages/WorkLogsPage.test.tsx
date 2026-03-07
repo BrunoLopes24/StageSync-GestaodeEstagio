@@ -27,11 +27,11 @@ describe('WorkLogPage', () => {
     vi.mocked(useWorkLogs).mockReturnValue({
       data: { total: 2 },
       isLoading: false,
-    } as any);
+    } as never);
 
     vi.mocked(useDashboard).mockReturnValue({
       data: { totalHoursLogged: 14, daysWorked: 2 },
-    } as any);
+    } as never);
 
     render(
       <QueryClientProvider client={queryClient}>
