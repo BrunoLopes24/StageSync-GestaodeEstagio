@@ -9,11 +9,6 @@ services:
       - pgdata-dev:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U stagesync"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
   backend:
     build:
@@ -27,6 +22,9 @@ services:
       NODE_ENV: development
       PORT: "3000"
       CORS_ORIGIN: http://localhost:5173
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      EMAIL_FROM: ${EMAIL_FROM}
+      APP_URL: ${APP_URL:-http://localhost:5173}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-stagesync-dev-access-secret-change-in-prod-min32chars}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-stagesync-dev-refresh-secret-change-in-prod-min32chars}
       ALLOW_FIRST_LOGIN_PASSWORD_SETUP: "true"
@@ -41,7 +39,7 @@ services:
       - backend_node_modules:/app/node_modules
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_started
 
   frontend:
     build:

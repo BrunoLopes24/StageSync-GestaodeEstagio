@@ -2,9 +2,12 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
+import fs from 'fs'
 
-// Local default is backend on localhost; Docker can override with VITE_PROXY_TARGET=http://backend:3000
-const proxyTarget = process.env.VITE_PROXY_TARGET || 'http://localhost:3000'
+// Prefer Docker service hostname when running inside a container.
+const runningInDocker = fs.existsSync('/.dockerenv')
+const defaultProxyTarget = runningInDocker ? 'http://backend:3000' : 'http://localhost:3000'
+const proxyTarget = process.env.VITE_PROXY_TARGET || defaultProxyTarget
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -22,6 +25,7 @@ export default defineConfig({
     },
   },
   test: {
+    pool: 'threads',
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],

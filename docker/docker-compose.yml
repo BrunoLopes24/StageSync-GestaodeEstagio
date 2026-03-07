@@ -23,7 +23,16 @@ services:
       DATABASE_URL: postgresql://stagesync:${DB_PASSWORD:-stagesync_secret}@db:5432/stagesync
       NODE_ENV: production
       PORT: "3000"
-      CORS_ORIGIN: http://localhost
+      CORS_ORIGIN: http://localhost,http://localhost:5173,http://localhost:80
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      EMAIL_FROM: ${EMAIL_FROM}
+      APP_URL: ${APP_URL:-http://localhost:5173}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-f0e1d2c3b4a5f6e7d8c9b0a1f2e3d4c5b6a7f8e9d0c1b2a3f4e5d6c7b8a9f0e1}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      ALLOW_FIRST_LOGIN_PASSWORD_SETUP: ${ALLOW_FIRST_LOGIN_PASSWORD_SETUP:-true}
+      ALLOW_MULTIPLE_SESSIONS: ${ALLOW_MULTIPLE_SESSIONS:-true}
       SHELL: /bin/sh
     ports:
       - "3000:3000"
@@ -36,7 +45,7 @@ services:
       context: ..
       dockerfile: docker/frontend/Dockerfile
     ports:
-      - "80:80"
+      - "5173:80"
     depends_on:
       - backend
 

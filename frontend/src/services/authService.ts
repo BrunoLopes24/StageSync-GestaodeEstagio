@@ -1,4 +1,4 @@
-import type { LoginResponse, RefreshResponse } from '@/types/auth';
+import type { LoginResponse, ProfessorLoginResponse, RefreshResponse } from '@/types/auth';
 import { getRefreshToken } from '@/lib/tokenManager';
 import { resolveApiBase } from '@/lib/api-base';
 
@@ -23,6 +23,24 @@ export async function login(
   password: string,
 ): Promise<LoginResponse> {
   return authRequest<LoginResponse>('/login', { identifier, password });
+}
+
+export async function professorLogin(
+  email: string,
+  code: string,
+): Promise<ProfessorLoginResponse> {
+  const res = await fetch(`${API_BASE}/professor/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, code }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Código de acesso inválido');
+  }
+
+  return res.json();
 }
 
 export async function refreshToken(): Promise<RefreshResponse> {

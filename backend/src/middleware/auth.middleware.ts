@@ -12,6 +12,7 @@ declare global {
       studentNumber?: string;
       userEmail?: string;
       sessionId?: string;
+      supervisedStudentIds?: string[];
     }
   }
 }
@@ -19,8 +20,8 @@ declare global {
 interface AccessTokenPayload {
   sub: string;
   role: string;
-  studentNumber: string;
-  email: string;
+  studentNumber?: string;
+  email?: string;
   iat: number;
   exp: number;
 }
@@ -53,8 +54,8 @@ export async function authMiddleware(req: Request, _res: Response, next: NextFun
 
     req.userId = decoded.sub;
     req.userRole = decoded.role;
-    req.studentNumber = decoded.studentNumber;
-    req.userEmail = decoded.email;
+    req.studentNumber = decoded.studentNumber ?? '';
+    req.userEmail = decoded.email ?? '';
     req.sessionId = activeSession.id;
 
     next();

@@ -1,0 +1,62 @@
+name: Validate
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build backend
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/fake
+        run: npm run build
+
+      - name: Lint frontend
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Run backend tests
+        working-directory: backend
+        env:
+          JWT_ACCESS_SECRET: "test-jwt-access-secret-that-is-at-least-32-chars-long"
+          JWT_REFRESH_SECRET: "test-jwt-refresh-secret-that-is-at-least-32-chars-long"
+        run: npm test -- --runInBand
+
+      - name: Run frontend tests
+        working-directory: frontend
+        run: npm test

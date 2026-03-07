@@ -15,28 +15,35 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   loading: boolean;
   login: (identifier: string, password: string) => Promise<AuthUser>;
+  professorLogin: (email: string, code: string) => Promise<AuthUser>;
   logout: () => Promise<void>;
   refreshAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+function decodeUserFromToken(accessToken: string): AuthUser {
+  const payload = JSON.parse(atob(accessToken.split('.')[1]));
+  if (payload.role === 'PROFESSOR') {
+    return { id: payload.sub, role: 'PROFESSOR' };
+  }
+  return {
+    id: payload.sub,
+    role: 'STUDENT',
+    studentNumber: payload.studentNumber,
+    email: payload.email,
+  };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !!getRefreshToken());
 
   const refreshAuth = useCallback(async () => {
     try {
       const data = await authService.refreshToken();
       setTokens(data.accessToken, data.refreshToken);
-      // Decode user from the new access token
-      const payload = JSON.parse(atob(data.accessToken.split('.')[1]));
-      setUser({
-        id: payload.sub,
-        role: payload.role,
-        studentNumber: payload.studentNumber,
-        email: payload.email,
-      });
+      setUser(decodeUserFromToken(data.accessToken));
     } catch {
       clearTokens();
       setUser(null);
@@ -50,6 +57,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return data.user;
   }, []);
 
+  const professorLogin = useCallback(async (email: string, code: string): Promise<AuthUser> => {
+    const data = await authService.professorLogin(email, code);
+    setTokens(data.accessToken, data.refreshToken);
+    const professorUser: AuthUser = { id: data.user.id, role: 'PROFESSOR' };
+    setUser(professorUser);
+    return professorUser;
+  }, []);
+
   const logout = useCallback(async () => {
     await authService.logout();
     clearTokens();
@@ -58,12 +73,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Silent refresh on mount if refresh token exists
   useEffect(() => {
-    const token = getRefreshToken();
-    if (token) {
-      refreshAuth().finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    if (!getRefreshToken()) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async callback, not synchronous
+    refreshAuth().finally(() => setLoading(false));
   }, [refreshAuth]);
 
   return (
@@ -73,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: user !== null,
         loading,
         login,
+        professorLogin,
         logout,
         refreshAuth,
       }}
@@ -82,6 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
   if (!context) {

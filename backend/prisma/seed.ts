@@ -1,10 +1,51 @@
 import { PrismaClient } from '@prisma/client';
+import * as argon2 from 'argon2';
 import { getPortugueseHolidays } from '../src/utils/portuguese-holidays';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('Seeding database...');
+
+  // ─── Institution + Student Identity + User ───────────────
+  const institution = await prisma.institution.upsert({
+    where: { domain: 'estg.ipvc.pt' },
+    update: {},
+    create: {
+      name: 'ESTG-IPVC',
+      domain: 'estg.ipvc.pt',
+      isActive: true,
+    },
+  });
+  console.log(`Institution: ${institution.name}`);
+
+  const studentNumber = '27767';
+  const email = `${studentNumber}@estg.ipvc.pt`;
+  const passwordHash = await argon2.hash('password123');
+
+  const identity = await prisma.studentIdentity.upsert({
+    where: { institutionalEmail: email },
+    update: {},
+    create: {
+      studentNumber,
+      institutionalEmail: email,
+      isActive: true,
+      needsPasswordSetup: false,
+      institutionId: institution.id,
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email },
+    update: {},
+    create: {
+      email,
+      passwordHash,
+      role: 'STUDENT',
+      studentIdentityId: identity.id,
+    },
+  });
+  console.log(`Student user created: ${studentNumber} / password123`);
 
   // Generate holidays for current and next year
   const currentYear = new Date().getFullYear();

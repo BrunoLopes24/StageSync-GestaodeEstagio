@@ -37,16 +37,33 @@ interface TokenPair {
   refreshToken: string;
 }
 
-interface JwtPayload {
+interface StudentJwtPayload {
   sub: string;
-  role: string;
+  role: 'STUDENT';
   studentNumber: string;
   email: string;
 }
 
+interface ProfessorJwtPayload {
+  sub: string;
+  role: 'PROFESSOR';
+}
+
+type JwtPayload = StudentJwtPayload | ProfessorJwtPayload;
+
 interface LoginContext {
   ip: string;
   userAgent: string;
+}
+
+// ─── Payload Builders ─────────────────────────────────────
+
+function buildStudentPayload(userId: string, studentNumber: string, email: string): StudentJwtPayload {
+  return { sub: userId, role: 'STUDENT', studentNumber, email };
+}
+
+function buildProfessorPayload(userId: string): ProfessorJwtPayload {
+  return { sub: userId, role: 'PROFESSOR' };
 }
 
 // ─── 1. findStudentIdentity ───────────────────────────────
@@ -96,12 +113,13 @@ export async function handlePasswordSetup(studentIdentityId: string, password: s
   const passwordHash = await argon2.hash(password);
 
   // All users created via first-login flow are students.
-  // Admin accounts are pre-seeded and never go through this path.
   const role = 'STUDENT';
+  const email = identity.institutionalEmail.trim().toLowerCase();
 
   const user = await prisma.$transaction(async (tx) => {
     const newUser = await tx.user.create({
       data: {
+        email,
         passwordHash,
         role,
         studentIdentityId,
@@ -129,24 +147,15 @@ export async function validatePassword(passwordHash: string, candidatePassword: 
 
 export async function issueTokens(
   userId: string,
-  role: string,
-  studentNumber: string,
-  email: string,
+  payload: JwtPayload,
   context: LoginContext,
 ): Promise<TokenPair> {
   if (!config.allowMultipleSessions) {
     await prisma.session.deleteMany({ where: { userId } });
   }
 
-  const payload: JwtPayload = {
-    sub: userId,
-    role,
-    studentNumber,
-    email,
-  };
-
   const accessToken = jwt.sign(
-    payload,
+    payload as object,
     config.jwtAccessSecret as Secret,
     {
       expiresIn: config.jwtAccessExpiresIn,
@@ -201,17 +210,30 @@ export async function refreshTokens(refreshToken: string, context: LoginContext)
     throw new AppError(401, 'Refresh token expired');
   }
 
-  // Delete old session (token rotation)
-  await prisma.session.delete({ where: { id: session.id } });
+  // Delete old session (token rotation).
+  // Use deleteMany to make rotation idempotent under concurrent refresh calls.
+  await prisma.session.deleteMany({ where: { id: session.id } });
 
   const { user } = session;
-  return issueTokens(
-    user.id,
-    user.role,
-    user.studentIdentity.studentNumber,
-    user.studentIdentity.institutionalEmail,
-    context,
-  );
+
+  // Role-safe payload building
+  if (user.role === 'STUDENT') {
+    // studentIdentity is guaranteed non-null for students
+    const payload = buildStudentPayload(
+      user.id,
+      user.studentIdentity!.studentNumber,
+      user.studentIdentity!.institutionalEmail,
+    );
+    return issueTokens(user.id, payload, context);
+  }
+
+  if (user.role === 'PROFESSOR') {
+    // Never access user.studentIdentity for professors
+    const payload = buildProfessorPayload(user.id);
+    return issueTokens(user.id, payload, context);
+  }
+
+  throw new AppError(401, 'Unknown role');
 }
 
 // ─── 7. logout ───────────────────────────────────────────
@@ -278,13 +300,12 @@ export async function login(
   }
 
   // Step 6: Issue tokens
-  const tokens = await issueTokens(
+  const payload = buildStudentPayload(
     user.id,
-    user.role,
     studentIdentity.studentNumber,
     studentIdentity.institutionalEmail,
-    context,
   );
+  const tokens = await issueTokens(user.id, payload, context);
 
   auditLog('LOGIN_SUCCESS', {
     userId: user.id,

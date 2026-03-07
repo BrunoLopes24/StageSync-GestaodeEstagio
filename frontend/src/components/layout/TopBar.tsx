@@ -18,9 +18,12 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   });
   const navigate = useNavigate();
 
-  const displayName = isStudent
-    ? (settings?.studentName || user?.studentNumber || user?.email || '')
-    : (user?.studentNumber || user?.email || '');
+  let displayName = '';
+  if (isStudent && user.role === 'STUDENT') {
+    displayName = settings?.studentName || user.studentNumber || user.email || '';
+  } else if (user?.role === 'PROFESSOR') {
+    displayName = 'Professor';
+  }
 
   async function handleLogout() {
     await logout();
@@ -28,7 +31,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   }
 
   return (
-    <header className="flex h-16 items-center gap-4 border-b bg-card px-6">
+    <header className="relative flex h-16 items-center border-b bg-card px-3 sm:gap-4 sm:px-6">
       <Button
         variant="ghost"
         size="icon"
@@ -38,11 +41,11 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         <Menu className="h-5 w-5" />
       </Button>
 
-      <Logo className="h-7 lg:hidden" />
+      <Logo className="absolute left-1/2 h-7 -translate-x-1/2 lg:hidden" />
 
-      <div className="ml-auto flex items-center gap-3">
+      <div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-3">
         {displayName && (
-          <span className="text-sm text-muted-foreground">
+          <span className="hidden max-w-[12rem] truncate text-right text-sm text-muted-foreground sm:block">
             {displayName}
           </span>
         )}

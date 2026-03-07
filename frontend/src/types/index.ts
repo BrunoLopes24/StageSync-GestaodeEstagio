@@ -43,6 +43,7 @@ export interface Settings {
   supervisorName: string | null;
   studentName: string | null;
   studentNumber: string | null;
+  studentEmail: string | null;
 }
 
 export interface DashboardStats {

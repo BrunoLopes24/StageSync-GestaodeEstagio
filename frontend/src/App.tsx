@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/context/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { AdminRoute } from '@/components/AdminRoute';
+import { ProfessorRoute } from '@/components/ProfessorRoute';
 import { StudentRoute } from '@/components/StudentRoute';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { LandingPage } from '@/pages/LandingPage';
@@ -11,10 +11,8 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { WorkLogPage } from '@/pages/WorkLogPage';
 import { ReportsPage } from '@/pages/ReportsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
-import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage';
-import { AdminStudentsPage } from '@/pages/admin/AdminStudentsPage';
-import { AdminWorkLogsPage } from '@/pages/admin/AdminWorkLogsPage';
-import { AdminSessionsPage } from '@/pages/admin/AdminSessionsPage';
+import { ProfessorDashboardPage } from '@/pages/professor/ProfessorDashboardPage';
+import { ProfessorWorkLogsPage } from '@/pages/professor/ProfessorWorkLogsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,11 +39,9 @@ function App() {
                   <Route path="/reports" element={<ReportsPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
                 </Route>
-                <Route element={<AdminRoute />}>
-                  <Route path="/admin" element={<AdminDashboardPage />} />
-                  <Route path="/admin/students" element={<AdminStudentsPage />} />
-                  <Route path="/admin/work-logs" element={<AdminWorkLogsPage />} />
-                  <Route path="/admin/sessions" element={<AdminSessionsPage />} />
+                <Route element={<ProfessorRoute />}>
+                  <Route path="/professor" element={<ProfessorDashboardPage />} />
+                  <Route path="/professor/work-logs/:studentId" element={<ProfessorWorkLogsPage />} />
                 </Route>
               </Route>
             </Route>
