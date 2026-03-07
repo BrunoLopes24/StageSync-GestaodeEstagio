@@ -26,9 +26,10 @@ function computeInternshipStatus(stats: DashboardStats): InternshipStatus {
     : stats.percentComplete;
 
   const ratio = expectedPercent > 0 ? stats.percentComplete / expectedPercent : 1;
+  const roundedRatio = Math.round(ratio * 100) / 100;
 
-  if (ratio >= 0.9) return 'ON_TRACK';
-  if (ratio >= 0.7) return 'SLIGHTLY_BEHIND';
+  if (roundedRatio >= 0.9) return 'ON_TRACK';
+  if (roundedRatio >= 0.7) return 'SLIGHTLY_BEHIND';
   return 'AT_RISK';
 }
 
