@@ -74,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Silent refresh on mount if refresh token exists
   useEffect(() => {
     if (!getRefreshToken()) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async callback, not synchronous
     refreshAuth().finally(() => setLoading(false));
   }, [refreshAuth]);
 
