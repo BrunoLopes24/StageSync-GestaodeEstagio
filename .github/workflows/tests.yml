@@ -53,8 +53,8 @@ jobs:
       - name: Run backend tests
         working-directory: backend
         env:
-          JWT_ACCESS_SECRET: 12345678901234567890123456789012
-          JWT_REFRESH_SECRET: abcdefghijklmnopqrstuvwxyz123456
+          JWT_ACCESS_SECRET: "test-jwt-access-secret-that-is-at-least-32-chars-long"
+          JWT_REFRESH_SECRET: "test-jwt-refresh-secret-that-is-at-least-32-chars-long"
         run: npm test -- --runInBand
 
       - name: Run frontend tests
